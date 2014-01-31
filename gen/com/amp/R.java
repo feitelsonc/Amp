@@ -21,17 +21,30 @@ public final class R {
         public static final int activity_vertical_margin=0x7f040001;
     }
     public static final class drawable {
-        public static final int btn_splash=0x7f020000;
-        public static final int button_selected_drawable=0x7f020001;
-        public static final int button_unselected_drawable=0x7f020002;
-        public static final int ic_launcher=0x7f020003;
-        public static final int music_notes=0x7f020004;
+        public static final int btn_pause=0x7f020000;
+        public static final int btn_play=0x7f020001;
+        public static final int btn_splash=0x7f020002;
+        public static final int button_pause_selected=0x7f020003;
+        public static final int button_pause_unselected=0x7f020004;
+        public static final int button_play_selected=0x7f020005;
+        public static final int button_play_unselected=0x7f020006;
+        public static final int button_selected_drawable=0x7f020007;
+        public static final int button_unselected_drawable=0x7f020008;
+        public static final int ic_launcher=0x7f020009;
+        public static final int icon=0x7f02000a;
+        public static final int music_notes=0x7f02000b;
     }
     public static final class id {
-        public static final int action_settings=0x7f080003;
-        public static final int createGroup=0x7f080000;
-        public static final int joinGroup=0x7f080001;
-        public static final int musicNotes=0x7f080002;
+        public static final int action_settings=0x7f080009;
+        public static final int albumCover=0x7f080005;
+        public static final int createGroup=0x7f080006;
+        public static final int joinGroup=0x7f080007;
+        public static final int musicNotes=0x7f080008;
+        public static final int musicProgress=0x7f080003;
+        public static final int playPause=0x7f080004;
+        public static final int seekbarAndTimes=0x7f080000;
+        public static final int timeLeft=0x7f080002;
+        public static final int timePlayed=0x7f080001;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
