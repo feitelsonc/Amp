@@ -19,8 +19,7 @@ public class SplashScreenActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		getWindow().requestFeature(Window.FEATURE_ACTION_BAR);
-		getActionBar().hide();
+		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.activity_splash_screen);
 		
 		createGroup = (Button) findViewById(R.id.createGroup);
