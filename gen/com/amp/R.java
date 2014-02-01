@@ -22,26 +22,30 @@ public final class R {
     }
     public static final class drawable {
         public static final int btn_change_song=0x7f020000;
-        public static final int btn_pause=0x7f020001;
-        public static final int btn_play=0x7f020002;
-        public static final int btn_splash=0x7f020003;
-        public static final int button_pause_selected=0x7f020004;
-        public static final int button_pause_unselected=0x7f020005;
-        public static final int button_play_selected=0x7f020006;
-        public static final int button_play_unselected=0x7f020007;
-        public static final int button_selected_drawable=0x7f020008;
-        public static final int button_unselected_drawable=0x7f020009;
-        public static final int change_song_selected=0x7f02000a;
-        public static final int change_song_unselected=0x7f02000b;
-        public static final int ic_launcher=0x7f02000c;
-        public static final int icon=0x7f02000d;
-        public static final int music_notes=0x7f02000e;
+        public static final int btn_exit_group=0x7f020001;
+        public static final int btn_pause=0x7f020002;
+        public static final int btn_play=0x7f020003;
+        public static final int btn_splash=0x7f020004;
+        public static final int button_pause_selected=0x7f020005;
+        public static final int button_pause_unselected=0x7f020006;
+        public static final int button_play_selected=0x7f020007;
+        public static final int button_play_unselected=0x7f020008;
+        public static final int button_selected_drawable=0x7f020009;
+        public static final int button_unselected_drawable=0x7f02000a;
+        public static final int change_song_selected=0x7f02000b;
+        public static final int change_song_unselected=0x7f02000c;
+        public static final int exit_group_icon_selected=0x7f02000d;
+        public static final int exit_group_icon_unselected=0x7f02000e;
+        public static final int ic_launcher=0x7f02000f;
+        public static final int icon=0x7f020010;
+        public static final int music_notes=0x7f020011;
     }
     public static final class id {
         public static final int action_settings=0x7f080009;
         public static final int albumCover=0x7f080005;
-        public static final int changeSong=0x7f08000a;
+        public static final int changeSong=0x7f08000b;
         public static final int createGroup=0x7f080006;
+        public static final int exitGroup=0x7f08000a;
         public static final int joinGroup=0x7f080007;
         public static final int musicNotes=0x7f080008;
         public static final int musicProgress=0x7f080003;
@@ -61,6 +65,7 @@ public final class R {
     }
     public static final class string {
         public static final int action_change_song=0x7f050004;
+        public static final int action_exit_group=0x7f050005;
         public static final int action_settings=0x7f050001;
         public static final int app_name=0x7f050000;
         public static final int hello_world=0x7f050002;
