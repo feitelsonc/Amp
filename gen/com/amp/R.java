@@ -39,6 +39,7 @@ public final class R {
         public static final int ic_launcher=0x7f02000f;
         public static final int icon=0x7f020010;
         public static final int music_notes=0x7f020011;
+        public static final int no_cover=0x7f020012;
     }
     public static final class id {
         public static final int action_settings=0x7f080009;
