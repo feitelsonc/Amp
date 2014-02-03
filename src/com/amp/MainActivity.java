@@ -41,11 +41,11 @@ public class MainActivity extends Activity {
 		String intentType = getIntent().getStringExtra(SplashScreenActivity.GROUP_ACTION_EXTRA);
 		if (intentType.equals(SplashScreenActivity.CREATE_GROUP_EXTRA)) {
 			masterMode = true;
-			Toast.makeText(this, "create group", Toast.LENGTH_SHORT).show();
+//			Toast.makeText(this, "create group", Toast.LENGTH_SHORT).show();
 		}
 		else {
 			masterMode = false;
-			Toast.makeText(this, "join group", Toast.LENGTH_SHORT).show();
+//			Toast.makeText(this, "join group", Toast.LENGTH_SHORT).show();
 		}
 		
 	}
