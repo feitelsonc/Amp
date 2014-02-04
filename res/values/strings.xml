@@ -8,5 +8,7 @@
     
     <string name="action_change_song">Change song</string>
     <string name="action_exit_group">Exit group</string>
+    <string name="toast_exited_group">Exited group</string>
+    <string name="untitled_track">Untitled Track</string>
 
 </resources>

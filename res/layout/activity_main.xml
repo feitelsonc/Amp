@@ -57,12 +57,26 @@
 		android:textOff=""
 		android:checked="true" />
     
+    <TextView
+		android:id="@+id/songTitle"
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_alignParentTop="true"
+			android:layout_centerHorizontal="true"
+			android:layout_marginBottom="5dp"
+			android:text="@string/untitled_track"
+			android:textStyle="bold"
+			android:textSize="15sp"
+			android:textColor="#3f9fe0"
+			android:visibility="gone" />
+    
 	<ImageView
 		android:id="@+id/albumCover"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent"
-		android:layout_alignParentTop="true"
+		android:layout_below="@id/songTitle"
 		android:layout_above="@id/playPause"
-		android:background="@drawable/no_cover" />
-    
+		android:background="@drawable/no_cover"
+		android:scaleType="centerCrop" />
+	    
 </RelativeLayout>
