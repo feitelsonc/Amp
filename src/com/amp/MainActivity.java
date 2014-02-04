@@ -1,5 +1,6 @@
 package com.amp;
 
+import android.R.menu;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
@@ -7,7 +8,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
@@ -25,6 +28,7 @@ public class MainActivity extends Activity {
 	static final String SELECTED_SONG = "selectedSong";
 	private static final int SELECT_SONG = 1;
 	boolean masterMode;
+	boolean connected;
 	ToggleButton playPause;
 	ImageView albumArtView;
 	TextView songTitleView;
@@ -33,6 +37,7 @@ public class MainActivity extends Activity {
 	String selectedSongUriString = null;
 	MediaMetadataRetriever metaRetriver;
     byte[] albumArt = null;
+    MediaPlayer mediaPlayer = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -51,9 +56,15 @@ public class MainActivity extends Activity {
 		        if (isChecked) {
 		            // Play is set
 		        	playPause.setBackgroundResource(R.drawable.btn_play);
+		        	if (mediaPlayer != null) {
+		        		mediaPlayer.pause();
+		        	}
 		        } else {
 		            // pause is set
 		        	playPause.setBackgroundResource(R.drawable.btn_pause);
+		        	if (mediaPlayer != null) {
+		        		mediaPlayer.start();
+		        	}
 		        }
 		    }
 		});
@@ -85,7 +96,6 @@ public class MainActivity extends Activity {
 	public void onSaveInstanceState(Bundle savedInstanceState) {
 	    // Save the user's current state
 	    savedInstanceState.putString(SELECTED_SONG, selectedSongUriString);
-	    
 	    super.onSaveInstanceState(savedInstanceState);
 	}
 
@@ -94,6 +104,12 @@ public class MainActivity extends Activity {
 		// Inflate the menu items for use in the action bar
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.main_activity_actions, menu);
+	    if (connected) {
+	    	menu.findItem(R.id.joinGroup).setVisible(false);
+	    }
+	    else {
+	    	menu.findItem(R.id.exitGroup).setVisible(false);
+	    }
 	    return super.onCreateOptionsMenu(menu);
 	}
 	
@@ -109,6 +125,13 @@ public class MainActivity extends Activity {
 	            return true;
 	        case R.id.exitGroup:
 	        	Toast.makeText(this, R.string.toast_exited_group, Toast.LENGTH_SHORT).show();
+	        	connected = false;
+	        	invalidateOptionsMenu();
+	            return true;
+	        case R.id.joinGroup:
+	        	Toast.makeText(this, R.string.toast_joined_group, Toast.LENGTH_SHORT).show();
+	        	connected = true;
+	        	invalidateOptionsMenu();
 	            return true;
 	        default:
 	            return super.onOptionsItemSelected(item);
@@ -118,7 +141,7 @@ public class MainActivity extends Activity {
 	@Override 
 	protected void onActivityResult(int requestCode,int resultCode,Intent data){
 
-	  if(requestCode == 1){
+	  if(requestCode == 1) {
 
 	    if(resultCode == RESULT_OK){
 
@@ -135,6 +158,24 @@ public class MainActivity extends Activity {
 	private void setupWidgets(String songUriString) {
 		if (songUriString != null && !songUriString.equals("")) {
 			selectedSongUri = Uri.parse(songUriString);
+			
+			if (mediaPlayer != null) {
+				mediaPlayer.pause();
+				mediaPlayer.stop();
+				playPause.setChecked(true);
+			}
+			
+			mediaPlayer = new MediaPlayer();
+			try {
+				mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+				mediaPlayer.setDataSource(getApplicationContext(), selectedSongUri);
+				mediaPlayer.prepare();
+				mediaPlayer.start();
+				playPause.setChecked(false);
+			} catch(Exception e) {
+				
+			}
+			
 	        metaRetriver = new MediaMetadataRetriever();
 	        try {
 	        	 metaRetriver.setDataSource(this, selectedSongUri);
