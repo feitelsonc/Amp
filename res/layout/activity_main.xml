@@ -55,7 +55,7 @@
 		android:background="@drawable/btn_play"
 		android:textOn=""
 		android:textOff=""
-		android:checked="true" />
+		android:checked="false" />
     
     <TextView
 		android:id="@+id/songTitle"

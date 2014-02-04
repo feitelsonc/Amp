@@ -1,9 +1,11 @@
 package com.amp;
 
-import android.R.menu;
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -13,6 +15,7 @@ import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -22,6 +25,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import com.amp.AudioService.LocalBinder;
 
 public class MainActivity extends Activity {
 	
@@ -37,7 +42,7 @@ public class MainActivity extends Activity {
 	String selectedSongUriString = null;
 	MediaMetadataRetriever metaRetriver;
     byte[] albumArt = null;
-    MediaPlayer mediaPlayer = null;
+    private AudioService musicPlayerService = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,39 +61,41 @@ public class MainActivity extends Activity {
 		        if (isChecked) {
 		            // Play is set
 		        	playPause.setBackgroundResource(R.drawable.btn_play);
-		        	if (mediaPlayer != null) {
-		        		mediaPlayer.pause();
+		        	if(musicPlayerService.isPlaying()) {
+		        		musicPlayerService.pause();
 		        	}
 		        } else {
-		            // pause is set
+		            // Pause is set
 		        	playPause.setBackgroundResource(R.drawable.btn_pause);
-		        	if (mediaPlayer != null) {
-		        		mediaPlayer.start();
-		        	}
+		        	musicPlayerService.play();
 		        }
 		    }
 		});
 		
 		intentType = getIntent().getStringExtra(SplashScreenActivity.GROUP_ACTION_EXTRA);
 		
-		// Check whether we're recreating a previously destroyed instance
-	    if (savedInstanceState != null) {
+		if (savedInstanceState != null) {
 	        // Restore value of members from saved state
 	    	selectedSongUriString = savedInstanceState.getString(SELECTED_SONG);
-	    } else {
-	    	selectedSongUriString = getIntent().getStringExtra(SplashScreenActivity.SELECTED_SONG_URI_EXTRA);
 	    }
-	    
-		setupWidgets(selectedSongUriString);
 		
 		if (intentType.equals(SplashScreenActivity.CREATE_GROUP_EXTRA)) {
 			masterMode = true;
-//			Toast.makeText(this, "create group", Toast.LENGTH_SHORT).show();
+			selectedSongUriString = getIntent().getStringExtra(SplashScreenActivity.SELECTED_SONG_URI_EXTRA);
+			selectedSongUri = Uri.parse(selectedSongUriString);
 		}
 		else {
 			masterMode = false;
-//			Toast.makeText(this, "join group", Toast.LENGTH_SHORT).show();
 		}
+	    
+	    if(!AudioService.isServiceStarted()) {
+	  		Intent intent = new Intent(this, AudioService.class);
+	  		startService(intent);
+		}
+	    
+	    bindToMusicPlayerService();
+	    
+		setupWidgets(selectedSongUriString);
 		
 	}
 	
@@ -148,6 +155,7 @@ public class MainActivity extends Activity {
 	        //the selected audio
 	    	selectedSongUri = data.getData(); 
 	    	selectedSongUriString = selectedSongUri.toString();
+	    	musicPlayerService.initializeSong(selectedSongUri);
 	    	
 	    	setupWidgets(selectedSongUriString);
 	    }
@@ -158,23 +166,6 @@ public class MainActivity extends Activity {
 	private void setupWidgets(String songUriString) {
 		if (songUriString != null && !songUriString.equals("")) {
 			selectedSongUri = Uri.parse(songUriString);
-			
-			if (mediaPlayer != null) {
-				mediaPlayer.pause();
-				mediaPlayer.stop();
-				playPause.setChecked(true);
-			}
-			
-			mediaPlayer = new MediaPlayer();
-			try {
-				mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-				mediaPlayer.setDataSource(getApplicationContext(), selectedSongUri);
-				mediaPlayer.prepare();
-				mediaPlayer.start();
-				playPause.setChecked(false);
-			} catch(Exception e) {
-				
-			}
 			
 	        metaRetriver = new MediaMetadataRetriever();
 	        try {
@@ -201,6 +192,45 @@ public class MainActivity extends Activity {
 	        	songTitleView.setVisibility(View.VISIBLE);
 	        	songTitleView.setText(getResources().getString(R.string.untitled_track));
 	        }
+		}
+	}
+	
+//	@Override
+//	protected void onStop() {
+//		super.onStop();
+//
+//		if(AudioService.isServiceStarted()) {
+//			unbindToMusicPlayerService();
+//		}
+//	}
+	
+	private void bindToMusicPlayerService() {
+		Intent intent = new Intent(this, AudioService.class);
+		bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+	}
+	
+	private ServiceConnection mConnection = new ServiceConnection() {
+
+		@Override
+		public void onServiceConnected(ComponentName className, IBinder service) {
+			// We've bound to LocalService, cast the IBinder and get LocalService instance
+			LocalBinder binder = (LocalBinder) service;
+			musicPlayerService = binder.getService();
+			musicPlayerService.initializeSong(selectedSongUri);
+			playPause.setBackgroundResource(R.drawable.btn_pause);
+		}
+
+		@Override
+		public void onServiceDisconnected(ComponentName arg0) {
+			musicPlayerService = null;
+		}
+	}; 
+	
+	private void unbindToMusicPlayerService() {
+
+		if(musicPlayerService != null) {
+			unbindService(mConnection);
+			musicPlayerService = null;
 		}
 	}
 

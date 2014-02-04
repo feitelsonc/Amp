@@ -13,6 +13,9 @@
         android:icon="@drawable/icon"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        
+        <service android:name="com.amp.AudioService" />
+        
         <activity
             android:name="com.amp.SplashScreenActivity"
             android:label="@string/app_name"
@@ -28,5 +31,6 @@
             android:label="@string/app_name" >
         </activity>
     </application>
+    
 
 </manifest>
