@@ -61,5 +61,17 @@ public class AudioService extends Service {
 	public boolean isPlaying() {
 		return player.isPlaying();
 	}
+	
+	public int getPosition() {
+		return player.getCurrentPosition()/1000;
+	}
+	
+	public int getDuration() {
+		return player.getDuration()/1000;
+	}
+	
+	public void seekTo(int milliseconds) {
+		player.seekTo(milliseconds);
+	}
 
 }

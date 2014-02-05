@@ -10,11 +10,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
-import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -22,13 +21,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import com.amp.AudioService.LocalBinder;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OnSeekBarChangeListener {
 	
 	static final String SELECTED_SONG = "selectedSong";
 	private static final int SELECT_SONG = 1;
@@ -37,12 +38,17 @@ public class MainActivity extends Activity {
 	ToggleButton playPause;
 	ImageView albumArtView;
 	TextView songTitleView;
+	TextView timePlayed;
+	TextView timeLeft;
+	SeekBar musicProgress;
 	String intentType;
 	Uri selectedSongUri = null;
 	String selectedSongUriString = null;
 	MediaMetadataRetriever metaRetriver;
     byte[] albumArt = null;
     private AudioService musicPlayerService = null;
+    private Handler handler = new Handler();
+    private Ticker ticker = null;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +59,10 @@ public class MainActivity extends Activity {
 		ActionBar bar = getActionBar();
 		bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#3f9fe0")));
 		
+		musicProgress = (SeekBar) findViewById(R.id.musicProgress);
+		musicProgress.setOnSeekBarChangeListener(this);
+		timePlayed = (TextView) findViewById(R.id.timePlayed);
+		timeLeft = (TextView) findViewById(R.id.timeLeft);
 		albumArtView = (ImageView) findViewById(R.id.albumCover);
 		songTitleView = (TextView) findViewById(R.id.songTitle);
 		playPause = (ToggleButton) findViewById(R.id.playPause);
@@ -97,6 +107,21 @@ public class MainActivity extends Activity {
 	    
 		setupWidgets(selectedSongUriString);
 		
+		if(ticker == null && AudioService.isServiceStarted()) {
+    		ticker = new Ticker();
+			ticker.start();
+    	}
+		
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
+		
+		if(ticker == null && AudioService.isServiceStarted()) {
+			ticker = new Ticker();
+			ticker.start();
+		}
 	}
 	
 	@Override
@@ -195,14 +220,14 @@ public class MainActivity extends Activity {
 		}
 	}
 	
-//	@Override
-//	protected void onStop() {
-//		super.onStop();
-//
-//		if(AudioService.isServiceStarted()) {
-//			unbindToMusicPlayerService();
-//		}
-//	}
+	@Override
+	protected void onDestroy() {
+		super.onStop();
+
+		if(AudioService.isServiceStarted()) {
+			unbindToMusicPlayerService();
+		}
+	}
 	
 	private void bindToMusicPlayerService() {
 		Intent intent = new Intent(this, AudioService.class);
@@ -218,6 +243,11 @@ public class MainActivity extends Activity {
 			musicPlayerService = binder.getService();
 			musicPlayerService.initializeSong(selectedSongUri);
 			playPause.setBackgroundResource(R.drawable.btn_pause);
+
+			if(musicPlayerService.isPlaying()) {
+				ticker = new Ticker();
+				ticker.start();
+			}
 		}
 
 		@Override
@@ -231,6 +261,107 @@ public class MainActivity extends Activity {
 		if(musicPlayerService != null) {
 			unbindService(mConnection);
 			musicPlayerService = null;
+		}
+	}
+	
+	private class Ticker extends Thread {
+    	TickerRunnable runnable = null;
+    	
+    	public Ticker() {
+    		this(new TickerRunnable());
+     	}
+    	
+    	private Ticker(TickerRunnable runnable) {
+    		super(runnable, "audio_player_ticker");
+    		this.runnable = runnable;
+    	}
+    	
+    	public void stopTicker() {
+    		runnable.stopTicker();
+    	}
+    }
+	
+	private class TickerRunnable implements Runnable {
+	   	private final int TICKER_TIME = 1000;
+    	
+    	private boolean canceled = false; 
+    	
+ 
+    	@Override
+    	public void run() {
+     		
+     		while(!canceled) {
+	    		try {
+	    			Thread.sleep(TICKER_TIME);
+	    		} catch (InterruptedException e) {
+	    			return;
+	    		} catch (Exception e) {
+	    			return;
+	    		}
+	
+	    		handler.post(new Runnable() {
+	    			@Override
+	    			public void run() {
+	    				if(!canceled) {
+		    				setPositionTrackerWidgets();
+	    				}
+	    			}
+	    		});
+     		}
+    	}
+    	
+    	public void stopTicker() {
+    		canceled = true;
+    	}
+	}
+	
+	private void setPositionTrackerWidgets() {
+		musicProgress.setMax(musicPlayerService.getDuration());
+		musicProgress.setProgress(musicPlayerService.getPosition());
+			
+		Integer minutesPlayed = (musicPlayerService.getPosition() % 3600) / 60;
+		StringBuilder minutesPlayedString = new StringBuilder();
+		minutesPlayedString.append(minutesPlayed.toString());
+
+		Integer secondsPlayed = musicPlayerService.getPosition() % 60;
+		StringBuilder secondsPlayedString = new StringBuilder();
+		secondsPlayedString.append(secondsPlayed.toString());
+		if (secondsPlayed < 10) {
+			secondsPlayedString.insert(0, "0");
+		}
+		timePlayed.setText(minutesPlayedString + ":" + secondsPlayedString);
+		
+		Integer timeRemaining = musicPlayerService.getDuration() - musicPlayerService.getPosition();
+		Integer minutesLeft = (timeRemaining % 3600) / 60;
+		StringBuilder minutesLeftString = new StringBuilder();
+		minutesLeftString.append(minutesLeft.toString());
+
+		Integer secondsLeft = timeRemaining % 60;
+		StringBuilder secondsLeftString = new StringBuilder();
+		secondsLeftString.append(secondsLeft.toString());
+		if (secondsLeft < 10) {
+			secondsLeftString.insert(0, "0");
+		}
+		timeLeft.setText(minutesLeftString + ":" + secondsLeftString);
+	}
+
+	@Override
+	public void onProgressChanged(SeekBar musicProgress, int arg1, boolean arg2) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onStartTrackingTouch(SeekBar musicProgress) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onStopTrackingTouch(SeekBar musicProgress) {
+		musicProgress.setProgress(musicProgress.getProgress());
+		if (musicPlayerService != null && musicPlayerService.isPlaying()) {
+			musicPlayerService.seekTo(musicProgress.getProgress()*1000);
 		}
 	}
 
