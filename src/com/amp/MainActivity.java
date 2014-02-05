@@ -220,15 +220,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener {
 		}
 	}
 	
-	@Override
-	protected void onDestroy() {
-		super.onStop();
-
-		if(AudioService.isServiceStarted()) {
-			unbindToMusicPlayerService();
-		}
-	}
-	
 	private void bindToMusicPlayerService() {
 		Intent intent = new Intent(this, AudioService.class);
 		bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
@@ -282,7 +273,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener {
     }
 	
 	private class TickerRunnable implements Runnable {
-	   	private final int TICKER_TIME = 1000;
+	   	private final int TICKER_TIME = 250;
     	
     	private boolean canceled = false; 
     	

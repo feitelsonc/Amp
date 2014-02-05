@@ -13,7 +13,7 @@ public class AudioService extends Service {
 	private MediaPlayer player = new MediaPlayer();
 	private final IBinder binder = new LocalBinder();
 	static private boolean serviceStarted = false;
-	private Uri currentTrackUri;
+	private Uri currentSongUri;
 	
 	static public boolean isServiceStarted() {
 		return serviceStarted;
@@ -33,13 +33,13 @@ public class AudioService extends Service {
 	}
 	
 	public void initializeSong(Uri uri) {
-		currentTrackUri = uri;
+		currentSongUri = uri;
 		
 		player.release();
 		player = new MediaPlayer();
 		try {
 			player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-			player.setDataSource(getApplicationContext(), currentTrackUri);
+			player.setDataSource(getApplicationContext(), currentSongUri);
 			player.prepare();
 			player.start();
 		}
@@ -72,6 +72,10 @@ public class AudioService extends Service {
 	
 	public void seekTo(int milliseconds) {
 		player.seekTo(milliseconds);
+	}
+	
+	Uri getCurrectSongUri() {
+		return currentSongUri;
 	}
 
 }
