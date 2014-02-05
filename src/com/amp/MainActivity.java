@@ -2,6 +2,7 @@ package com.amp;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.DialogFragment;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -26,30 +27,29 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
-
 import com.amp.AudioService.LocalBinder;
 
-public class MainActivity extends Activity implements OnSeekBarChangeListener {
+public class MainActivity extends Activity implements OnSeekBarChangeListener, IPAddressDialog.IPAddressDialogListener {
 	
 	static final String SELECTED_SONG = "selectedSong";
 	private static final int SELECT_SONG = 1;
-	boolean masterMode;
-	boolean connected;
-	ToggleButton playPause;
-	ImageView albumArtView;
-	TextView songTitleView;
-	TextView timePlayed;
-	TextView timeLeft;
-	SeekBar musicProgress;
-	String intentType;
-	Uri selectedSongUri = null;
-	String selectedSongUriString = null;
-	MediaMetadataRetriever metaRetriver;
-    byte[] albumArt = null;
-    private AudioService musicPlayerService = null;
+	private boolean masterMode;
+	private boolean connected;
+	private ToggleButton playPause;
+	private ImageView albumArtView;
+	private TextView songTitleView;
+	private TextView timePlayed;
+	private TextView timeLeft;
+	private SeekBar musicProgress;
+	private String intentType;
+	private Uri selectedSongUri = null;
+	private String selectedSongUriString = null;
+	private MediaMetadataRetriever metaRetriver;
+	private byte[] albumArt = null;
+	private AudioService musicPlayerService = null;
     private Handler handler = new Handler();
     private Ticker ticker = null;
-
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -161,7 +161,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener {
 	        	invalidateOptionsMenu();
 	            return true;
 	        case R.id.joinGroup:
-	        	Toast.makeText(this, R.string.toast_joined_group, Toast.LENGTH_SHORT).show();
+//	        	Toast.makeText(this, R.string.toast_joined_group, Toast.LENGTH_SHORT).show();
+	        	showDialog();
 	        	connected = true;
 	        	invalidateOptionsMenu();
 	            return true;
@@ -354,6 +355,18 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener {
 		if (musicPlayerService != null && musicPlayerService.isPlaying()) {
 			musicPlayerService.seekTo(musicProgress.getProgress()*1000);
 		}
+	}
+
+	public void showDialog() {
+        // Create an instance of the dialog fragment and show it
+        DialogFragment dialog = new IPAddressDialog();
+        dialog.show(getFragmentManager(), "ConnectDialog");
+    }
+	
+	@Override
+	public void onReturnValue(String IPAddress) {
+		Toast.makeText(this, "Connected to: " + IPAddress, Toast.LENGTH_SHORT).show();
+		
 	}
 
 }
