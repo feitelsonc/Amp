@@ -1,13 +1,24 @@
 package com.amp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.Context;
 import android.net.Uri;
+import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pManager.Channel;
+import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.Toast;
 
 public class SplashScreenActivity extends Activity {
 	
@@ -19,7 +30,14 @@ public class SplashScreenActivity extends Activity {
 	Button createGroup, joinGroup;
 	private static final int SELECT_SONG = 1;
 	Uri selectedSong;
-
+	//COPY AND PASTE THESE
+    private WifiP2pManager mManager;
+    private Channel mChannel;
+    private BroadcastReceiver mReceiver;
+    private IntentFilter mIntentFilter;
+    private List peers;
+    protected PeerListListener myPeerListListener;
+    //end
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -46,9 +64,36 @@ public class SplashScreenActivity extends Activity {
         	    SplashScreenActivity.this.finish(); // don't allow user to return to splash screen
             }
         });
-		
-	}
+		//COPY AND PASTE THESE
+	    mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+	    mChannel = mManager.initialize(this, getMainLooper(), null);
+	    mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
+	    
+	    mIntentFilter = new IntentFilter();
+	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+	    peers = new ArrayList();
+	    
 
+		mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener()
+		{
+		    @Override
+		    public void onSuccess() {
+		    	 Toast.makeText(getApplicationContext(),"Other peers have been discovered!", Toast.LENGTH_SHORT).show();
+		    }
+	
+		    @Override
+		    public void onFailure(int reasonCode) {
+		    	
+		    }
+		});
+		
+
+
+		//enD
+	}	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -77,5 +122,19 @@ public class SplashScreenActivity extends Activity {
 	  }
 	  super.onActivityResult(requestCode, resultCode, data);
 	}
+	
+	//Copy and paste these
+	protected void onResume() {
+	    super.onResume();
+	    registerReceiver(mReceiver, mIntentFilter);
+	}
+	/* unregister the broadcast receiver */
+	@Override
+	protected void onPause() {
+	    super.onPause();
+	    unregisterReceiver(mReceiver);
+	}
+	
+	//end
 
 }

@@ -29,6 +29,7 @@ import android.widget.Toast;
 import android.widget.ToggleButton;
 import com.amp.AudioService.LocalBinder;
 
+
 public class MainActivity extends Activity implements OnSeekBarChangeListener, IPAddressDialog.IPAddressDialogListener {
 	
 	static final String SELECTED_SONG = "selectedSong";
@@ -49,6 +50,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	private AudioService musicPlayerService = null;
     private Handler handler = new Handler();
     private Ticker ticker = null;
+
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
