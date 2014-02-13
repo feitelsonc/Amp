@@ -14,9 +14,9 @@ public class SplashScreenActivity extends Activity {
 	public static String JOIN_GROUP_EXTRA = "join group";
 	public static String CREATE_GROUP_EXTRA = "create group";
 	public static String SELECTED_SONG_URI_EXTRA = "song uri";
-	Button createGroup, joinGroup;
+	private Button createGroup, joinGroup;
 	private static final int SELECT_SONG = 1;
-	Uri selectedSong;
+	private Uri selectedSong;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -56,15 +56,12 @@ public class SplashScreenActivity extends Activity {
 	@Override 
 	protected void onActivityResult(int requestCode,int resultCode,Intent data){
 
-	  if(requestCode == 1){
-
-	    if(resultCode == RESULT_OK){
+	  if (requestCode == 1) {
+	    if (resultCode == RESULT_OK) {
 
 	        //the selected audio
-	    	selectedSong = data.getData(); 
-	    	
+	    	selectedSong = data.getData();
 	    	String uri = selectedSong.toString();
-	    	
 	    	Intent intent = new Intent(this, MainActivity.class);
 	    	intent.putExtra(GROUP_ACTION_EXTRA, CREATE_GROUP_EXTRA);
 	    	intent.putExtra(SELECTED_SONG_URI_EXTRA, uri);
@@ -72,6 +69,7 @@ public class SplashScreenActivity extends Activity {
     	    SplashScreenActivity.this.finish(); // don't allow user to return to splash screen
 	    }
 	  }
+	  
 	  super.onActivityResult(requestCode, resultCode, data);
 	}
 

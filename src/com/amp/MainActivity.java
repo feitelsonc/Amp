@@ -1,7 +1,6 @@
 package com.amp;
 
 import java.util.ArrayList;
-
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DialogFragment;
@@ -21,7 +20,6 @@ import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pGroup;
-import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
@@ -41,7 +39,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.widget.ViewFlipper;
-
 import com.amp.AudioService.LocalBinder;
 
 
@@ -68,6 +65,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     private Handler handler = new Handler();
     private Ticker ticker = null;
 
+    // private variables for wifi direct
     private WifiP2pManager mManager;
     private Channel mChannel;
     private BroadcastReceiver mReceiver;
@@ -76,7 +74,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     private ArrayList <WifiP2pDevice> devices = new ArrayList<WifiP2pDevice>();
     private String currentGroupAddress;
 
-    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -147,32 +144,27 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			ticker.start();
     	}
 		
-		//COPY AND PASTE THESE
 	    mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 	    mChannel = mManager.initialize(this, getMainLooper(), null);
 	    mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
-	    
 	    mIntentFilter = new IntentFilter();
 	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
 	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
 	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
 	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 	    
-
-		mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener()
-		{
+		mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
+			
 		    @Override
 		    public void onSuccess() {
-//		    	 Toast.makeText(getApplicationContext(),"Other peers have been discovered!", Toast.LENGTH_SHORT).show();
 		    }
 	
 		    @Override
 		    public void onFailure(int reasonCode) {
-		    	
 		    }
 		});
 		
-		if(masterMode){
+		if (masterMode) {
 			mManager.createGroup(mChannel, new WifiP2pManager.ActionListener(){
     			
     			@Override
@@ -180,20 +172,20 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     				connected = true;
     				Toast.makeText(getApplicationContext(), "Group Created Success!", Toast.LENGTH_SHORT).show();
     			}
+    			
     			@Override
     			public void onFailure(int reason){
     				connected = false;
     				Toast.makeText(getApplicationContext(), Integer.valueOf(reason).toString(), Toast.LENGTH_SHORT).show();
     			}
-    		}
-    		);
+    		});
 		}
-		
-		
+	
 	}
 	
 	protected void onPause() {
-	    super.onPause();
+		super.onPause();
+		
 	    unregisterReceiver(mReceiver);
 	}
 	
@@ -244,60 +236,69 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	        case R.id.exitGroup:
 	        	Toast.makeText(this, R.string.toast_exited_group, Toast.LENGTH_SHORT).show();
 	        	connected = false;
+	        	groupAddressView.setVisibility(View.GONE);
 	        	invalidateOptionsMenu();
+	        	
+	        	mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
+
+	    			@Override
+	    			public void onFailure(int reason) {
+	    			}
+
+	    			@Override
+	    			public void onSuccess() {
+	    				Toast.makeText(getApplicationContext(), "Removed Group", Toast.LENGTH_SHORT).show();
+	    			}
+	    		});
 	            return true;
 	        case R.id.joinGroup:
 //	        	Toast.makeText(this, R.string.toast_joined_group, Toast.LENGTH_SHORT).show();
 //	        	showDialog();
 	        	
 	        	if (masterMode){
-	        	
-	        		
-	        		if(connected) {
-	        			Toast.makeText(getApplicationContext(), "in if(connected) {}", Toast.LENGTH_SHORT).show();
+	        		if (connected) {
 		        		mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener(){ 
 	    					
 							@Override
 							public void onGroupInfoAvailable(WifiP2pGroup group) {
-								Toast.makeText(getApplicationContext(), "onGroupInfoAvailable Method", Toast.LENGTH_SHORT).show();
 								currentGroupAddress = group.getOwner().deviceAddress;
 								groupAddressView.setText("Group Address: " + currentGroupAddress);
-								
 								groupAddressView.setVisibility(View.VISIBLE);
 							}
 	    				});
 	        		}
 	        		
 	        	}
-	        	
-	        	else{
-	        	
-       		 	mManager.requestPeers(mChannel, new PeerListListener(){
-  			    @Override
-  			    public void onPeersAvailable(WifiP2pDeviceList peerList){
-  		        //peers.clear();
-  		        //peers.addAll(peerList.getDeviceList());
-  			    	devices = new ArrayList<WifiP2pDevice> (peerList.getDeviceList());
-  			    	WifiP2pDevice device = devices.get(0);
-  			    	
-  			    	final WifiP2pConfig config = new WifiP2pConfig();
-  					config.deviceAddress = device.deviceAddress;
-  					mManager.connect(mChannel, config, new ActionListener() {
-
-  					    @Override
-  					    public void onSuccess() {
-  					        Toast.makeText(getApplicationContext(), "connected to: " + config.deviceAddress,Toast.LENGTH_LONG).show();
-  					    }
-
-  					    @Override
-  					    public void onFailure(int reason) {
-  					        //failure logic
-  					    }
-  					});
-  			    	
-  			    	Toast.makeText(getApplicationContext(), peerList.toString(), Toast.LENGTH_LONG).show();  		            
-  			    }
-       		 	});
+	        	else {
+	       		 	mManager.requestPeers(mChannel, new PeerListListener(){
+	       		 		
+		  			    @Override
+		  			    public void onPeersAvailable(WifiP2pDeviceList peerList){
+		  			    	devices = new ArrayList<WifiP2pDevice> (peerList.getDeviceList());
+		  			    	
+		  			    	if (devices.size() > 0) {
+		  			    		WifiP2pDevice device = devices.get(0);
+			  			    	
+			  			    	final WifiP2pConfig config = new WifiP2pConfig();
+			  					config.deviceAddress = device.deviceAddress;
+			  					mManager.connect(mChannel, config, new ActionListener() {
+			
+			  					    @Override
+			  					    public void onSuccess() {
+			  					        Toast.makeText(getApplicationContext(), "connected to: " + config.deviceAddress,Toast.LENGTH_LONG).show();
+			  					    }
+			
+			  					    @Override
+			  					    public void onFailure(int reason) {
+			  					    }
+			  					});
+		  			    	}
+		  			    	else {
+		  			    		Toast.makeText(getApplicationContext(), "No nearby devices found", Toast.LENGTH_LONG).show();
+		  			    	}
+		//  			    	Toast.makeText(getApplicationContext(), peerList.toString(), Toast.LENGTH_LONG).show();  		            
+		  			    }
+	       		 	});
 	        	}
 	        	connected = true;
 	        	invalidateOptionsMenu();
@@ -342,7 +343,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	        	
 	        }
 	       
-	        //Song info retrieval code
 	        try {
 	        	albumArt = metaRetriver.getEmbeddedPicture();
 	            Bitmap songImage = BitmapFactory.decodeByteArray(albumArt, 0, albumArt.length);
@@ -512,19 +512,18 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	}
 	@Override
 	public void onStop(){
+		super.onStop();
 		
 		mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
 
 			@Override
 			public void onFailure(int reason) {
-				
 			}
 
 			@Override
-			public void onSuccess() {
-				
-			}});
-		super.onStop();
+			public void onSuccess() {	
+			}
+		});
 	}
 
 }
