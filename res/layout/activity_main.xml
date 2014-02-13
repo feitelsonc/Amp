@@ -8,75 +8,107 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context=".MainActivity" >
     
-    <RelativeLayout
-		android:id="@+id/seekbarAndTimes"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:layout_centerHorizontal="true"
-		android:layout_alignParentBottom="true"
-		android:layout_marginTop="@dimen/activity_vertical_margin"
-	    android:layout_marginBottom="@dimen/activity_vertical_margin" >
-	    
-	    <TextView
-			android:id="@+id/timePlayed"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentLeft="true"
-			android:layout_centerVertical="true"
-			android:text="0:00" />
-	    
-	    <TextView
-			android:id="@+id/timeLeft"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentRight="true"
-			android:layout_centerVertical="true"
-			android:text="0:00" />
-	    
-	    <SeekBar
-		    android:id="@+id/musicProgress"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_centerVertical="true"
-		    android:layout_centerHorizontal="true"
-		    android:layout_toLeftOf="@id/timeLeft"
-		    android:layout_toRightOf="@id/timePlayed"
-		    android:thumbOffset="8dp" />
-	    
-	</RelativeLayout>
+    <ViewFlipper
+        android:id="@+id/viewSwitcher"
+        android:layout_width="match_parent"
+    	android:layout_height="match_parent" >
     
-    <ToggleButton
-        android:id="@+id/playPause"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginTop="@dimen/activity_vertical_margin"
-        android:layout_above="@id/seekbarAndTimes"
-        android:layout_centerHorizontal="true"
-		android:background="@drawable/btn_play"
-		android:textOn=""
-		android:textOff=""
-		android:checked="false" />
+	    <RelativeLayout
+	        android:id="@+id/audioPlayingLayout"
+	        android:layout_width="match_parent"
+	    	android:layout_height="match_parent" >
+	    
+		    <RelativeLayout
+				android:id="@+id/seekbarAndTimes"
+				android:layout_width="match_parent"
+				android:layout_height="wrap_content"
+				android:layout_centerHorizontal="true"
+				android:layout_alignParentBottom="true"
+				android:layout_marginTop="@dimen/activity_vertical_margin"
+			    android:layout_marginBottom="@dimen/activity_vertical_margin" >
+			    
+			    <TextView
+					android:id="@+id/timePlayed"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_alignParentLeft="true"
+					android:layout_centerVertical="true"
+					android:text="0:00" />
+			    
+			    <TextView
+					android:id="@+id/timeLeft"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_alignParentRight="true"
+					android:layout_centerVertical="true"
+					android:text="0:00" />
+			    
+			    <SeekBar
+				    android:id="@+id/musicProgress"
+				    android:layout_width="wrap_content"
+				    android:layout_height="wrap_content"
+				    android:layout_centerVertical="true"
+				    android:layout_centerHorizontal="true"
+				    android:layout_toLeftOf="@id/timeLeft"
+				    android:layout_toRightOf="@id/timePlayed"
+				    android:thumbOffset="8dp" />
+			    
+			</RelativeLayout>
+	    
+		    <ToggleButton
+		        android:id="@+id/playPause"
+		        android:layout_width="80dp"
+		        android:layout_height="80dp"
+		        android:layout_marginTop="@dimen/activity_vertical_margin"
+		        android:layout_above="@id/seekbarAndTimes"
+		        android:layout_centerHorizontal="true"
+				android:background="@drawable/btn_play"
+				android:textOn=""
+				android:textOff=""
+				android:checked="false" />
+		    
+		    <TextView
+				android:id="@+id/songTitle"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_alignParentTop="true"
+				android:layout_centerHorizontal="true"
+				android:layout_marginBottom="5dp"
+				android:text="@string/untitled_track"
+				android:textStyle="bold"
+				android:textSize="15sp"
+				android:textColor="#3f9fe0"
+				android:visibility="gone" />
+		    
+			<ImageView
+				android:id="@+id/albumCover"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_below="@id/songTitle"
+				android:layout_above="@id/playPause"
+				android:background="@drawable/no_cover"
+				android:scaleType="centerCrop" />
+		
+		</RelativeLayout>
+		
+	    <RelativeLayout
+	        android:id="@+id/audioNotPlayingLayout"
+	        android:layout_width="match_parent"
+	    	android:layout_height="match_parent" >
+		
+	        <TextView
+				android:id="@+id/hint"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:layout_centerInParent="true"
+				android:text="Select audio \nor join group from above"
+				android:textSize="25sp"
+				android:textColor="#3f9fe0"
+				android:fontFamily="sans-serif-light"
+				android:gravity="center" />
+		
+	    </RelativeLayout>
     
-    <TextView
-		android:id="@+id/songTitle"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_alignParentTop="true"
-			android:layout_centerHorizontal="true"
-			android:layout_marginBottom="5dp"
-			android:text="@string/untitled_track"
-			android:textStyle="bold"
-			android:textSize="15sp"
-			android:textColor="#3f9fe0"
-			android:visibility="gone" />
-    
-	<ImageView
-		android:id="@+id/albumCover"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:layout_below="@id/songTitle"
-		android:layout_above="@id/playPause"
-		android:background="@drawable/no_cover"
-		android:scaleType="centerCrop" />
+    </ViewFlipper>
 	    
 </RelativeLayout>

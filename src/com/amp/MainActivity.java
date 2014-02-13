@@ -27,6 +27,8 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+import android.widget.ViewFlipper;
+
 import com.amp.AudioService.LocalBinder;
 
 
@@ -36,6 +38,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	private static final int SELECT_SONG = 1;
 	private boolean masterMode;
 	private boolean connected;
+	private ViewFlipper viewSwitcher;
 	private ToggleButton playPause;
 	private ImageView albumArtView;
 	private TextView songTitleView;
@@ -61,6 +64,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		ActionBar bar = getActionBar();
 		bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#3f9fe0")));
 		
+		viewSwitcher = (ViewFlipper) findViewById(R.id.viewSwitcher);
 		musicProgress = (SeekBar) findViewById(R.id.musicProgress);
 		musicProgress.setOnSeekBarChangeListener(this);
 		timePlayed = (TextView) findViewById(R.id.timePlayed);
@@ -95,9 +99,15 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			masterMode = true;
 			selectedSongUriString = getIntent().getStringExtra(SplashScreenActivity.SELECTED_SONG_URI_EXTRA);
 			selectedSongUri = Uri.parse(selectedSongUriString);
+			if (viewSwitcher.getDisplayedChild() == 1) {
+				viewSwitcher.setDisplayedChild(0);
+			}
 		}
 		else {
 			masterMode = false;
+			if (viewSwitcher.getDisplayedChild() == 0) {
+				viewSwitcher.setDisplayedChild(1);
+			}
 		}
 	    
 	    if(!AudioService.isServiceStarted()) {
@@ -179,6 +189,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	  if(requestCode == 1) {
 
 	    if(resultCode == RESULT_OK){
+	    	
+	    	if (viewSwitcher.getDisplayedChild() == 1) {
+				viewSwitcher.setDisplayedChild(0);
+			}
 
 	        //the selected audio
 	    	selectedSongUri = data.getData(); 
@@ -297,7 +311,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    			@Override
 	    			public void run() {
 	    				if(!canceled) {
-		    				setPositionTrackerWidgets();
+	    					if (musicPlayerService.isPlaying())
+	    						setPositionTrackerWidgets();
 	    				}
 	    			}
 	    		});
