@@ -1,11 +1,15 @@
 package com.amp;
 
+import java.util.ArrayList;
+
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DialogFragment;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,6 +17,15 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
+import android.net.wifi.p2p.WifiP2pConfig;
+import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
+import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pManager.ActionListener;
+import android.net.wifi.p2p.WifiP2pManager.Channel;
+import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -38,6 +51,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	private static final int SELECT_SONG = 1;
 	private boolean masterMode;
 	private boolean connected;
+	private TextView groupAddressView;
 	private ViewFlipper viewSwitcher;
 	private ToggleButton playPause;
 	private ImageView albumArtView;
@@ -54,6 +68,14 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     private Handler handler = new Handler();
     private Ticker ticker = null;
 
+    private WifiP2pManager mManager;
+    private Channel mChannel;
+    private BroadcastReceiver mReceiver;
+    private IntentFilter mIntentFilter;
+    protected PeerListListener myPeerListListener;
+    private ArrayList <WifiP2pDevice> devices = new ArrayList<WifiP2pDevice>();
+    private String currentGroupAddress;
+
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +86,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		ActionBar bar = getActionBar();
 		bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#3f9fe0")));
 		
+		groupAddressView = (TextView) findViewById(R.id.groupAddress);
 		viewSwitcher = (ViewFlipper) findViewById(R.id.viewSwitcher);
 		musicProgress = (SeekBar) findViewById(R.id.musicProgress);
 		musicProgress.setOnSeekBarChangeListener(this);
@@ -124,11 +147,62 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			ticker.start();
     	}
 		
+		//COPY AND PASTE THESE
+	    mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+	    mChannel = mManager.initialize(this, getMainLooper(), null);
+	    mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
+	    
+	    mIntentFilter = new IntentFilter();
+	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+	    
+
+		mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener()
+		{
+		    @Override
+		    public void onSuccess() {
+//		    	 Toast.makeText(getApplicationContext(),"Other peers have been discovered!", Toast.LENGTH_SHORT).show();
+		    }
+	
+		    @Override
+		    public void onFailure(int reasonCode) {
+		    	
+		    }
+		});
+		
+		if(masterMode){
+			mManager.createGroup(mChannel, new WifiP2pManager.ActionListener(){
+    			
+    			@Override
+    			public void onSuccess(){
+    				connected = true;
+    				Toast.makeText(getApplicationContext(), "Group Created Success!", Toast.LENGTH_SHORT).show();
+    			}
+    			@Override
+    			public void onFailure(int reason){
+    				connected = false;
+    				Toast.makeText(getApplicationContext(), Integer.valueOf(reason).toString(), Toast.LENGTH_SHORT).show();
+    			}
+    		}
+    		);
+		}
+		
+		
 	}
+	
+	protected void onPause() {
+	    super.onPause();
+	    unregisterReceiver(mReceiver);
+	}
+	
 	
 	@Override
 	public void onResume() {
 		super.onResume();
+		
+		registerReceiver(mReceiver, mIntentFilter);
 		
 		if(ticker == null && AudioService.isServiceStarted()) {
 			ticker = new Ticker();
@@ -174,9 +248,60 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	            return true;
 	        case R.id.joinGroup:
 //	        	Toast.makeText(this, R.string.toast_joined_group, Toast.LENGTH_SHORT).show();
-	        	showDialog();
+//	        	showDialog();
+	        	
+	        	if (masterMode){
+	        	
+	        		
+	        		if(connected) {
+	        			Toast.makeText(getApplicationContext(), "in if(connected) {}", Toast.LENGTH_SHORT).show();
+		        		mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener(){ 
+	    					
+							@Override
+							public void onGroupInfoAvailable(WifiP2pGroup group) {
+								Toast.makeText(getApplicationContext(), "onGroupInfoAvailable Method", Toast.LENGTH_SHORT).show();
+								currentGroupAddress = group.getOwner().deviceAddress;
+								groupAddressView.setText("Group Address: " + currentGroupAddress);
+								
+								groupAddressView.setVisibility(View.VISIBLE);
+							}
+	    				});
+	        		}
+	        		
+	        	}
+	        	
+	        	else{
+	        	
+       		 	mManager.requestPeers(mChannel, new PeerListListener(){
+  			    @Override
+  			    public void onPeersAvailable(WifiP2pDeviceList peerList){
+  		        //peers.clear();
+  		        //peers.addAll(peerList.getDeviceList());
+  			    	devices = new ArrayList<WifiP2pDevice> (peerList.getDeviceList());
+  			    	WifiP2pDevice device = devices.get(0);
+  			    	
+  			    	final WifiP2pConfig config = new WifiP2pConfig();
+  					config.deviceAddress = device.deviceAddress;
+  					mManager.connect(mChannel, config, new ActionListener() {
+
+  					    @Override
+  					    public void onSuccess() {
+  					        Toast.makeText(getApplicationContext(), "connected to: " + config.deviceAddress,Toast.LENGTH_LONG).show();
+  					    }
+
+  					    @Override
+  					    public void onFailure(int reason) {
+  					        //failure logic
+  					    }
+  					});
+  			    	
+  			    	Toast.makeText(getApplicationContext(), peerList.toString(), Toast.LENGTH_LONG).show();  		            
+  			    }
+       		 	});
+	        	}
 	        	connected = true;
 	        	invalidateOptionsMenu();
+	        	
 	            return true;
 	        default:
 	            return super.onOptionsItemSelected(item);
@@ -384,6 +509,22 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	public void onReturnValue(String IPAddress) {
 		Toast.makeText(this, "Connected to: " + IPAddress, Toast.LENGTH_SHORT).show();
 		
+	}
+	@Override
+	public void onStop(){
+		
+		mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
+
+			@Override
+			public void onFailure(int reason) {
+				
+			}
+
+			@Override
+			public void onSuccess() {
+				
+			}});
+		super.onStop();
 	}
 
 }
