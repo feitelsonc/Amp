@@ -146,7 +146,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		
 	    mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 	    mChannel = mManager.initialize(this, getMainLooper(), null);
-	    mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);
+	    mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);	    
 	    mIntentFilter = new IntentFilter();
 	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
 	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
@@ -157,6 +157,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			
 		    @Override
 		    public void onSuccess() {
+		    	Toast.makeText(getApplicationContext(), "Nearby devices found", Toast.LENGTH_SHORT).show();
 		    }
 	
 		    @Override
@@ -170,7 +171,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     			@Override
     			public void onSuccess(){
     				connected = true;
-    				Toast.makeText(getApplicationContext(), "Group Created Success!", Toast.LENGTH_SHORT).show();
+    				Toast.makeText(getApplicationContext(), "Group Created Success", Toast.LENGTH_SHORT).show();
+    				
     			}
     			
     			@Override
@@ -235,6 +237,16 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	            return true;
 	        case R.id.exitGroup:
 //	        	Toast.makeText(this, R.string.toast_exited_group, Toast.LENGTH_SHORT).show();
+	        	mManager.cancelConnect(mChannel, new WifiP2pManager.ActionListener(){
+
+	    			@Override
+	    			public void onFailure(int reason) {
+	    			}
+
+	    			@Override
+	    			public void onSuccess() {
+	    			}
+	    		});
 	        	
 	        	mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
 
@@ -256,21 +268,21 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 //	        	Toast.makeText(this, R.string.toast_joined_group, Toast.LENGTH_SHORT).show();
 //	        	showDialog();
 	        	
-	        	if (masterMode){
-	        		if (connected) {
-		        		mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener(){ 
-	    					
-							@Override
-							public void onGroupInfoAvailable(WifiP2pGroup group) {
-								currentGroupAddress = group.getOwner().deviceAddress;
-								groupAddressView.setText("Group Address: " + currentGroupAddress);
-								groupAddressView.setVisibility(View.VISIBLE);
-							}
-	    				});
-	        		}
-	        		
-	        	}
-	        	else {
+//	        	if (masterMode){
+//	        		if (connected) {
+//		        		mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener(){ 
+//	    					
+//							@Override
+//							public void onGroupInfoAvailable(WifiP2pGroup group) {
+//								currentGroupAddress = group.getOwner().deviceAddress;
+//								groupAddressView.setText("Group Address: " + currentGroupAddress);
+//								groupAddressView.setVisibility(View.VISIBLE);
+//							}
+//	    				});
+//	        		}
+//	        		
+//	        	}
+//	        	else {
 	       		 	mManager.requestPeers(mChannel, new PeerListListener(){
 	       		 		
 		  			    @Override
@@ -279,7 +291,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		  			    	
 		  			    	if (devices.size() > 0) {
 		  			    		WifiP2pDevice device = devices.get(0);
-			  			    	
 			  			    	final WifiP2pConfig config = new WifiP2pConfig();
 			  					config.deviceAddress = device.deviceAddress;
 			  					mManager.connect(mChannel, config, new ActionListener() {
@@ -302,7 +313,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		//  			    	Toast.makeText(getApplicationContext(), peerList.toString(), Toast.LENGTH_LONG).show();  		            
 		  			    }
 	       		 	});
-	        	}
+//	        	}
 	        	
 	            return true;
 	        default:
@@ -345,6 +356,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	        }
 	       
 	        try {
+	        	// fix huge meta image art case
 	        	albumArt = metaRetriver.getEmbeddedPicture();
 	            Bitmap songImage = BitmapFactory.decodeByteArray(albumArt, 0, albumArt.length);
 	            if (albumArt != null) {
@@ -353,8 +365,15 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	            else {
 	            	albumArtView.setImageDrawable(getResources().getDrawable(R.drawable.no_cover));
 	            }
-	            songTitleView.setVisibility(View.VISIBLE);
-	            songTitleView.setText(metaRetriver.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE));
+	            String songTitleText = metaRetriver.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+	            songTitleView.setText(songTitleText);
+	            
+	            if (songTitleText == null) {
+	            	songTitleView.setVisibility(View.GONE);
+	            }
+	            else {
+	            	songTitleView.setVisibility(View.VISIBLE);
+	            }
 	        } catch (Exception e) {
 	        	albumArtView.setImageDrawable(getResources().getDrawable(R.drawable.no_cover));
 	        	songTitleView.setVisibility(View.VISIBLE);
@@ -419,6 +438,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	   	private final int TICKER_TIME = 250;
     	
     	private boolean canceled = false; 
+    	private boolean groupInfoChanged = false;
     	
  
     	@Override
@@ -436,6 +456,23 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    		handler.post(new Runnable() {
 	    			@Override
 	    			public void run() {
+	    				
+	    				if (!groupInfoChanged) {
+	    					mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener(){ 
+		    					
+								@Override
+								public void onGroupInfoAvailable(WifiP2pGroup group) {
+									if (group != null) {
+										currentGroupAddress = group.getOwner().deviceAddress;
+										groupAddressView.setText("Group Address: " + currentGroupAddress);
+										groupAddressView.setVisibility(View.VISIBLE);
+										Toast.makeText(getApplicationContext(), group.getNetworkName(), Toast.LENGTH_LONG).show();
+										groupInfoChanged = true;
+									}
+								}
+		    				});
+	    				}
+	    				
 	    				if(!canceled) {
 	    					if (musicPlayerService.isPlaying())
 	    						setPositionTrackerWidgets();
