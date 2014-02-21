@@ -234,20 +234,21 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
             	startActivityForResult(selectSongIntent, SELECT_SONG);
 	            return true;
 	        case R.id.exitGroup:
-	        	Toast.makeText(this, R.string.toast_exited_group, Toast.LENGTH_SHORT).show();
-	        	connected = false;
-	        	groupAddressView.setVisibility(View.GONE);
-	        	invalidateOptionsMenu();
+//	        	Toast.makeText(this, R.string.toast_exited_group, Toast.LENGTH_SHORT).show();
 	        	
 	        	mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
 
 	    			@Override
 	    			public void onFailure(int reason) {
+	    				Toast.makeText(getApplicationContext(), "Exit Group Unsuccessful", Toast.LENGTH_SHORT).show();
 	    			}
 
 	    			@Override
 	    			public void onSuccess() {
-	    				Toast.makeText(getApplicationContext(), "Removed Group", Toast.LENGTH_SHORT).show();
+	    				connected = false;
+	    				Toast.makeText(getApplicationContext(), "Exited Group", Toast.LENGTH_SHORT).show();
+	    				groupAddressView.setVisibility(View.GONE);
+	    	        	invalidateOptionsMenu();
 	    			}
 	    		});
 	            return true;
