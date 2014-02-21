@@ -286,7 +286,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			
 			  					    @Override
 			  					    public void onSuccess() {
-			  					        Toast.makeText(getApplicationContext(), "connected to: " + config.deviceAddress,Toast.LENGTH_LONG).show();
+			  					        Toast.makeText(getApplicationContext(), "connected to: " + config.deviceAddress,Toast.LENGTH_SHORT).show();
+			  					        connected = true;
+			  					        invalidateOptionsMenu();
 			  					    }
 			
 			  					    @Override
@@ -301,8 +303,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		  			    }
 	       		 	});
 	        	}
-	        	connected = true;
-	        	invalidateOptionsMenu();
 	        	
 	            return true;
 	        default:
