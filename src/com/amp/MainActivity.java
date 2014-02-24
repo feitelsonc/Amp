@@ -1,6 +1,7 @@
 package com.amp;
 
 import java.util.ArrayList;
+
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DialogFragment;
@@ -39,6 +40,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 import android.widget.ViewFlipper;
+
 import com.amp.AudioService.LocalBinder;
 
 
@@ -157,7 +159,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			
 		    @Override
 		    public void onSuccess() {
-		    	Toast.makeText(getApplicationContext(), "Nearby devices found", Toast.LENGTH_SHORT).show();
+		    	Toast.makeText(getApplicationContext(), "Nearby device(s) found", Toast.LENGTH_SHORT).show();
 		    }
 	
 		    @Override
@@ -171,14 +173,14 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     			@Override
     			public void onSuccess(){
     				connected = true;
-    				Toast.makeText(getApplicationContext(), "Group Created Success", Toast.LENGTH_SHORT).show();
+    				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
     				
     			}
     			
     			@Override
     			public void onFailure(int reason){
     				connected = false;
-    				Toast.makeText(getApplicationContext(), Integer.valueOf(reason).toString(), Toast.LENGTH_SHORT).show();
+    				Toast.makeText(getApplicationContext(), "Error: " + Integer.valueOf(reason).toString() + " creating group", Toast.LENGTH_SHORT).show();
     			}
     		});
 		}
@@ -198,7 +200,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		
 		registerReceiver(mReceiver, mIntentFilter);
 		
-		if(ticker == null && AudioService.isServiceStarted()) {
+		if (ticker == null && AudioService.isServiceStarted()) {
 			ticker = new Ticker();
 			ticker.start();
 		}
@@ -548,9 +550,15 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		Toast.makeText(this, "Connected to: " + IPAddress, Toast.LENGTH_SHORT).show();
 		
 	}
+	
 	@Override
 	public void onStop(){
 		super.onStop();
+		
+		if (ticker != null) {
+			ticker.stopTicker();
+			ticker = null;
+		}
 		
 		mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
 
@@ -562,6 +570,16 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			public void onSuccess() {	
 			}
 		});
+	}
+	
+	@Override
+	public void onDestroy(){
+		super.onDestroy();
+		
+		if (AudioService.isServiceStarted()) {
+			stopService(new Intent(this, AudioService.class));
+			unbindToMusicPlayerService();
+		}
 	}
 
 }
