@@ -312,13 +312,19 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	        try {
 	        	// fix huge meta image art case
 	        	albumArt = metaRetriver.getEmbeddedPicture();
-	            Bitmap songImage = BitmapFactory.decodeByteArray(albumArt, 0, albumArt.length);
-	            if (albumArt != null) {
-	            	albumArtView.setImageBitmap(songImage);
-	            }
-	            else {
-	            	albumArtView.setImageDrawable(getResources().getDrawable(R.drawable.no_cover));
-	            }
+ 	        	if (albumArt.length < 2000000) {
+ 	        		Bitmap songImage = BitmapFactory.decodeByteArray(albumArt, 0, albumArt.length);
+ 	        		if (albumArt != null) {
+ 		            	albumArtView.setImageBitmap(songImage);
+ 		            }
+ 		            else {
+ 		            	albumArtView.setImageDrawable(getResources().getDrawable(R.drawable.no_cover));
+ 		            }
+ 	        	}
+ 	        	else {
+ 	        		albumArtView.setImageDrawable(getResources().getDrawable(R.drawable.no_cover));
+ 	        	}
+	            
 	            String songTitleText = metaRetriver.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
 	            songTitleView.setText(songTitleText);
 	            
@@ -420,7 +426,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 										currentGroupAddress = group.getOwner().deviceAddress;
 										groupAddressView.setText("Group Address: " + currentGroupAddress);
 										groupAddressView.setVisibility(View.VISIBLE);
-										Toast.makeText(getApplicationContext(), group.getNetworkName(), Toast.LENGTH_LONG).show();
+//										Toast.makeText(getApplicationContext(), group.getNetworkName(), Toast.LENGTH_LONG).show();
 										groupInfoChanged = true;
 									}
 								}
