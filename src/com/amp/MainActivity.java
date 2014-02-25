@@ -267,57 +267,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    		});
 	            return true;
 	        case R.id.joinGroup:
-//	        	Toast.makeText(this, R.string.toast_joined_group, Toast.LENGTH_SHORT).show();
-//	        	showDialog();
+	        	showDialog();
 	        	
-//	        	if (masterMode){
-//	        		if (connected) {
-//		        		mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener(){ 
-//	    					
-//							@Override
-//							public void onGroupInfoAvailable(WifiP2pGroup group) {
-//								currentGroupAddress = group.getOwner().deviceAddress;
-//								groupAddressView.setText("Group Address: " + currentGroupAddress);
-//								groupAddressView.setVisibility(View.VISIBLE);
-//							}
-//	    				});
-//	        		}
-//	        		
-//	        	}
-//	        	else {
-	       		 	mManager.requestPeers(mChannel, new PeerListListener(){
-	       		 		
-		  			    @Override
-		  			    public void onPeersAvailable(WifiP2pDeviceList peerList){
-		  			    	devices = new ArrayList<WifiP2pDevice> (peerList.getDeviceList());
-		  			    	
-		  			    	if (devices.size() > 0) {
-		  			    		WifiP2pDevice device = devices.get(0);
-			  			    	final WifiP2pConfig config = new WifiP2pConfig();
-			  					config.deviceAddress = device.deviceAddress;
-			  					mManager.connect(mChannel, config, new ActionListener() {
-			
-			  					    @Override
-			  					    public void onSuccess() {
-			  					        Toast.makeText(getApplicationContext(), "connected to: " + config.deviceAddress,Toast.LENGTH_SHORT).show();
-			  					        connected = true;
-			  					        invalidateOptionsMenu();
-			  					    }
-			
-			  					    @Override
-			  					    public void onFailure(int reason) {
-			  					    }
-			  					});
-		  			    	}
-		  			    	else {
-		  			    		Toast.makeText(getApplicationContext(), "No nearby devices found", Toast.LENGTH_LONG).show();
-		  			    	}
-		//  			    	Toast.makeText(getApplicationContext(), peerList.toString(), Toast.LENGTH_LONG).show();  		            
-		  			    }
-	       		 	});
-//	        	}
-	        	
-	            return true;
+	        	return true;
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }
@@ -546,8 +498,47 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     }
 	
 	@Override
-	public void onReturnValue(String IPAddress) {
-		Toast.makeText(this, "Connected to: " + IPAddress, Toast.LENGTH_SHORT).show();
+	public void onReturnValue(final String MACAddres) {
+		
+		mManager.requestPeers(mChannel, new PeerListListener(){
+    		@Override
+    		public void onPeersAvailable(WifiP2pDeviceList peerList){
+    			devices = new ArrayList<WifiP2pDevice> (peerList.getDeviceList());
+  			    	
+    			if (devices.size() > 0) {
+    				WifiP2pDevice device = null;
+    				for (int i=0; i<=devices.size(); i++) {
+    					if (devices.get(i).deviceAddress.equals(MACAddres)) {
+    						device = devices.get(i);
+    					}
+    				}
+    				
+    				if (device != null) {
+    					final WifiP2pConfig config = new WifiP2pConfig();
+        				config.deviceAddress = device.deviceAddress;
+        				
+        				mManager.connect(mChannel, config, new ActionListener() {
+        					@Override
+        					public void onSuccess() {
+        						Toast.makeText(getApplicationContext(), "Connected to: " + config.deviceAddress,Toast.LENGTH_SHORT).show();
+        						connected = true;
+        						invalidateOptionsMenu();
+        					}
+    	
+        					@Override
+        					public void onFailure(int reason) {}
+        				});
+    				}
+    				else {
+    					Toast.makeText(getApplicationContext(), "Device address invalid", Toast.LENGTH_SHORT).show();
+    				}
+    				
+    			}
+    			else {
+    				Toast.makeText(getApplicationContext(), "No nearby devices found", Toast.LENGTH_SHORT).show();
+    			}		            
+    		}
+    	});
 		
 	}
 	
