@@ -159,7 +159,19 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			
 		    @Override
 		    public void onSuccess() {
-		    	Toast.makeText(getApplicationContext(), "Nearby device(s) found", Toast.LENGTH_SHORT).show();
+		    	mManager.requestPeers(mChannel, new PeerListListener(){
+		    		@Override
+		    		public void onPeersAvailable(WifiP2pDeviceList peerList){
+		    			devices = new ArrayList<WifiP2pDevice> (peerList.getDeviceList());
+		  			    	
+		    			if (devices.size() > 0) {
+		    				Toast.makeText(getApplicationContext(), "Nearby device(s) found", Toast.LENGTH_SHORT).show();
+		    			}
+		    			else {
+		    				Toast.makeText(getApplicationContext(), "No nearby device(s) found", Toast.LENGTH_SHORT).show();
+		    			}
+		    		}
+		    	});
 		    }
 	
 		    @Override
@@ -504,7 +516,12 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     }
 	
 	@Override
-	public void onReturnValue(final String MACAddres) {
+	public void onReturnValue(final String MACAddress) {
+		
+		if (MACAddress.equals("")) {
+			Toast.makeText(getApplicationContext(), "Invalid address",Toast.LENGTH_SHORT).show();
+			return;
+		}
 		
 		mManager.requestPeers(mChannel, new PeerListListener(){
     		@Override
@@ -514,7 +531,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     			if (devices.size() > 0) {
     				WifiP2pDevice device = null;
     				for (int i=0; i<=devices.size(); i++) {
-    					if (devices.get(i).deviceAddress.equals(MACAddres)) {
+    					if (devices.get(i).deviceAddress.equals(MACAddress)) {
     						device = devices.get(i);
     					}
     				}
@@ -536,7 +553,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         				});
     				}
     				else {
-    					Toast.makeText(getApplicationContext(), "Device address invalid", Toast.LENGTH_SHORT).show();
+    					Toast.makeText(getApplicationContext(), "No device found with that address", Toast.LENGTH_SHORT).show();
     				}
     				
     			}
