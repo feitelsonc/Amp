@@ -29,7 +29,7 @@ public class IPAddressDialog extends DialogFragment {
         // Pass null as the parent view because its going in the dialog layout
         builder.setView(view);
         final EditText IPAddressEditText = (EditText) view.findViewById(R.id.ipAddress);
-        builder.setTitle("Connect to Address")
+        builder.setTitle("Connect to Group")
                .setNeutralButton("OK", new DialogInterface.OnClickListener() {
                    public void onClick(DialogInterface dialog, int id) {
                 	   mListener.onReturnValue(IPAddressEditText.getText().toString());
