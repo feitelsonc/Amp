@@ -31,15 +31,18 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
         try {
         	
         	FileInputStream inputStream;
-        	try {  
-        		inputStream = new FileInputStream(new File(songUri.getPath()));  
-        		byte[] buf = new byte[1024];  
-        		int n;  
-//        		while (-1 != (n = fis.read(buf)))  
-//        		baos.write(buf, 0, n);  
+        	try {
+        		File songfile = new File(songUri.getPath());
+        		inputStream = new FileInputStream(songfile);
+        		int fileLength = (int) songfile.length();
+        		songByteArray = new byte[fileLength];  
+        		for (int i=0; i<songfile.length(); i++) {
+        			songByteArray[i] = (byte) inputStream.read();
+        		}
+        		inputStream.close();
         		} catch (Exception e) {  
         		e.printStackTrace();  
-        		}
+        	}
 
             /**
              * Create a server socket and wait for client connections. This
@@ -57,7 +60,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
             	OutputStream outputStream = client.getOutputStream();
                 final File f = new File(Environment.getExternalStorageDirectory() + "/"
                         + context.getPackageName() + "/wifip2pshared-" + System.currentTimeMillis()
-                        + ".jpg");
+                        + ".mp3");
 
                 File dirs = new File(f.getParent());
                 if (!dirs.exists())
@@ -72,8 +75,9 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
         }
 		return null;
     }
-
-    protected void onPostExecute() {
+    
+    @Override
+    protected void onPostExecute(String result) {
        // notify of song transfer completion
     }
 }
