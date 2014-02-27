@@ -215,6 +215,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	public void onResume() {
 		super.onResume();
 		
+		bindToMusicPlayerService();
+		
 		registerReceiver(mReceiver, mIntentFilter);
 		
 		if (ticker == null && AudioService.isServiceStarted()) {
@@ -575,11 +577,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	@Override
 	public void onStop(){
 		super.onStop();
-		
-		if (ticker != null) {
-			ticker.stopTicker();
-			ticker = null;
-		}
 		
 		mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
 
