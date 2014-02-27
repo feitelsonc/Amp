@@ -202,6 +202,11 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	protected void onPause() {
 		super.onPause();
 		
+		if (ticker != null) {
+			ticker.stopTicker();
+			ticker = null;
+		}
+		
 	    unregisterReceiver(mReceiver);
 	}
 	
@@ -250,16 +255,18 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
             	startActivityForResult(selectSongIntent, SELECT_SONG);
 	            return true;
 	        case R.id.exitGroup:
-//	        	Toast.makeText(this, R.string.toast_exited_group, Toast.LENGTH_SHORT).show();
+;
 	        	mManager.cancelConnect(mChannel, new WifiP2pManager.ActionListener(){
 
+	        		@Override
+	    			public void onSuccess() {
+	    	        	Toast.makeText(getApplicationContext(), R.string.toast_exited_group, Toast.LENGTH_SHORT).show();
+	    			}
+	        		
 	    			@Override
 	    			public void onFailure(int reason) {
 	    			}
-
-	    			@Override
-	    			public void onSuccess() {
-	    			}
+	    			
 	    		});
 	        	
 	        	mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
@@ -530,7 +537,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
   			    	
     			if (devices.size() > 0) {
     				WifiP2pDevice device = null;
-    				for (int i=0; i<=devices.size(); i++) {
+    				for (int i=0; i<devices.size(); i++) {
     					if (devices.get(i).deviceAddress.equals(MACAddress)) {
     						device = devices.get(i);
     					}
@@ -589,6 +596,11 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
+		
+		if (ticker != null) {
+			ticker.stopTicker();
+			ticker = null;
+		}
 		
 		if (AudioService.isServiceStarted()) {
 			stopService(new Intent(this, AudioService.class));
