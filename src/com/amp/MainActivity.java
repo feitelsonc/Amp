@@ -168,7 +168,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		    				Toast.makeText(getApplicationContext(), "Nearby device(s) found", Toast.LENGTH_SHORT).show();
 		    			}
 		    			else {
-		    				Toast.makeText(getApplicationContext(), "No nearby device(s) found", Toast.LENGTH_SHORT).show();
+		    				Toast.makeText(getApplicationContext(), "No nearby devices found", Toast.LENGTH_SHORT).show();
 		    			}
 		    		}
 		    	});
@@ -455,8 +455,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    				}
 	    				
 	    				if(!canceled) {
-	    					if (musicPlayerService.isPlaying())
-	    						setPositionTrackerWidgets();
+	    					if (musicPlayerService != null) {
+	    						if (musicPlayerService.isPlaying())
+		    						setPositionTrackerWidgets();
+	    					}
 	    				}
 	    			}
 	    		});
