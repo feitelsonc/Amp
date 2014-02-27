@@ -6,7 +6,7 @@
     <string name="hello_world">Hello world!</string>
     <string name="title_activity_main">MainActivity</string>
     
-    <string name="action_change_song">Change song</string>
+    <string name="action_change_song">Choose song</string>
     <string name="action_join_group">Join group</string>
     <string name="toast_joined_group">Joined group</string>
     <string name="action_exit_group">Exit group</string>
