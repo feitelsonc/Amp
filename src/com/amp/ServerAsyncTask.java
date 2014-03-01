@@ -65,11 +65,11 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
              * Create a server socket and wait for client connections. This
              * call blocks until a connection is accepted from a client
              */
-            ServerSocket serverSocket = new ServerSocket(8888);
             byte[] messageType = new byte[1];
             byte[] clientUuid = new byte[1];
             
             while (true) {
+            	ServerSocket serverSocket = new ServerSocket(8888);
             	Socket client = serverSocket.accept();
             	InputStream inputstream = client.getInputStream();
             	OutputStream outputStream = client.getOutputStream();
@@ -85,8 +85,10 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
             		numClients++;
             	}
 
-                serverSocket.close();
+                
+            	serverSocket.close();
             }
+            
         } catch (Exception e) {
         }
 		return null;
