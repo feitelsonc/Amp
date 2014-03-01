@@ -21,6 +21,7 @@ import android.net.wifi.p2p.WifiP2pConfig;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
@@ -185,7 +186,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     			@Override
     			public void onSuccess(){
     				connected = true;
-    				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
+    				Toast.makeText(getApplicationContext(), "Group Created.", Toast.LENGTH_SHORT).show();
     				
     			}
     			
@@ -439,6 +440,18 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    			public void run() {
 	    				
 	    				if (!groupInfoChanged) {
+	    					
+	    					mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
+
+								@Override
+								public void onConnectionInfoAvailable(
+										WifiP2pInfo info) {
+									// TODO Auto-generated method stub
+									Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+								}
+	    						
+	    					});
+	    					
 	    					mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener(){ 
 		    					
 								@Override
@@ -449,9 +462,12 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 										groupAddressView.setVisibility(View.VISIBLE);
 //										Toast.makeText(getApplicationContext(), group.getNetworkName(), Toast.LENGTH_LONG).show();
 										groupInfoChanged = true;
+										
 									}
 								}
 		    				});
+	    					
+	    			
 	    				}
 	    				
 	    				if(!canceled) {
