@@ -12,7 +12,6 @@ import java.util.Map;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
 
 
 
@@ -77,32 +76,16 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
             	
             	int packetType = inputstream.read();
             	
-            	if (packetType == 0) {
-            		messageType[0] = (byte) 0x02;
-            		clientUuid[0] = Byte.parseByte(Integer.valueOf(numClients).toString());
+            	if (packetType == CONNECT) {
+            		messageType[0] = Integer.valueOf(WELCOME).byteValue();
+            		clientUuid[0] = Integer.valueOf(numClients).byteValue();
             		outputStream.write(messageType);
             		outputStream.write(clientUuid);
             		
             		numClients++;
             	}
 
-                /**
-                 * If this code is reached, a client has connected and transferred data
-                 * Save the input stream from the client as a JPEG file
-                 */
-            	
-                final File f = new File(Environment.getExternalStorageDirectory() + "/"
-                        + context.getPackageName() + "/wifip2pshared-" + System.currentTimeMillis()
-                        + ".mp3");
-
-                File dirs = new File(f.getParent());
-                if (!dirs.exists())
-                    dirs.mkdirs();
-                f.createNewFile();
-               
-//                copyFile(inputstream, new FileOutputStream(f));
                 serverSocket.close();
-                return f.getAbsolutePath();
             }
         } catch (Exception e) {
         }
@@ -111,6 +94,6 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
     
     @Override
     protected void onPostExecute(String result) {
-       // notify of song transfer completion
+    	
     }
 }
