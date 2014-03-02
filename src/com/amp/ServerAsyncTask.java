@@ -2,6 +2,8 @@ package com.amp;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -12,6 +14,8 @@ import java.util.Map;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
+import android.text.format.Time;
 
 
 
@@ -40,23 +44,40 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
         this.context = context;
         this.songUri = songUri;
     }
-
     
+    public static int byteArrayToInt(byte[] b) 
+    {
+        return   b[3] & 0xFF |
+                (b[2] & 0xFF) << 8 |
+                (b[1] & 0xFF) << 16 |
+                (b[0] & 0xFF) << 24;
+    }
+
+    public static byte[] intToByteArray(int a)
+    {
+        return new byte[] {
+            (byte) ((a >> 24) & 0xFF),
+            (byte) ((a >> 16) & 0xFF),   
+            (byte) ((a >> 8) & 0xFF),   
+            (byte) (a & 0xFF)
+        };
+    }
     
     @Override
     protected String doInBackground(Void... params) {
         try {
         	
-        	FileInputStream inputStream;
+        	FileInputStream fileinputstream;
         	try {
         		File songfile = new File(songUri.getPath());
-        		inputStream = new FileInputStream(songfile);
+        		fileinputstream = new FileInputStream(songfile);
         		int fileLength = (int) songfile.length();
-        		songByteArray = new byte[fileLength];  
-        		for (int i=0; i<songfile.length(); i++) {
+        		songByteArray = new byte[fileLength];
+        		fileinputstream.read(songByteArray, 0, fileLength);
+        		/*for (int i=0; i<songfile.length(); i++) {
         			songByteArray[i] = (byte) inputStream.read();
-        		}
-        		inputStream.close();
+        		}*/
+        		fileinputstream.close();
         		} catch (Exception e) {  
         		e.printStackTrace();  
         	}
@@ -74,6 +95,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
             	InputStream inputstream = client.getInputStream();
             	OutputStream outputStream = client.getOutputStream();
             	
+            	//Reads the first byte off the packet, this should always be packettype.
             	int packetType = inputstream.read();
             	
             	if (packetType == CONNECT) {
@@ -84,6 +106,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
             		
             		numClients++;
             	}
+            	
+            	
 
                 
             	serverSocket.close();
@@ -93,6 +117,27 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
         }
 		return null;
     }
+    
+    
+    private File createFile(String FileType){
+    	Time time = new Time();
+    	time.setToNow();
+    	final File f = new File(Environment.getExternalStorageDirectory() + "/"
+				+ context.getPackageName() + "/sharedsongs/song-" + time.toString() + System.currentTimeMillis()
+				+ FileType);
+
+		File dirs = new File(f.getParent());
+		if (!dirs.exists())
+			dirs.mkdirs();
+		try {
+			f.createNewFile();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return f;
+    }
+    
     
     @Override
     protected void onPostExecute(String result) {
