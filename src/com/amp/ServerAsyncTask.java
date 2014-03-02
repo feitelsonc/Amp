@@ -2,8 +2,10 @@ package com.amp;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
@@ -30,7 +32,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
 
 	private AudioService musicPlayerService = null;
 	private int numClients = 0;
-	static Map<String, String> dictionary = new HashMap<String, String>(); // maps uuids to IP addresses of clients
+	static Map<String, InetAddress> dictionary = new HashMap<String, InetAddress>(); // maps uuids to IP addresses of clients
+	static Map<String, Integer> dictionaryPorts = new HashMap<String, Integer>(); // maps uuids to ports of clients
 	
     private Context context;
     private Uri songUri;
@@ -82,7 +85,49 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
             		outputStream.write(messageType);
             		outputStream.write(clientUuid);
             		
+            		dictionary.put(Integer.valueOf(numClients).toString(), client.getInetAddress());
+            		dictionaryPorts.put(Integer.valueOf(numClients).toString(), Integer.valueOf(client.getPort()));
+            		
             		numClients++;
+            	}
+            	
+            	else if (packetType == DISCONNECT) {
+            		int uuidToRemove = inputstream.read();
+            		dictionary.remove(Integer.valueOf(uuidToRemove).toString());
+            		dictionaryPorts.remove(Integer.valueOf(numClients).toString());
+            	}
+            	
+            	else if (packetType == FILE_REQUEST) {
+            		// send file to client
+            	}
+            	
+            	else if (packetType == FILE) {
+            		int fileLength = inputstream.read();
+            		// create byte array out of received file and save file
+            		
+            		// request playback location of file
+            		messageType[0] = Integer.valueOf(REQUEST_SEEK_TO).byteValue();
+            		outputStream.write(messageType);
+            	}
+            	
+            	else if (packetType == PAUSE) {
+            		musicPlayerService.pause();
+            	}
+            	
+            	else if (packetType == PLAY) {
+            		musicPlayerService.play();
+            	}
+            	
+            	else if (packetType == SEEK_TO) {
+            		int milliseconds = 0;
+            		byte millisecondsArray[] = new byte [4];
+            		inputstream.read(millisecondsArray, 0, 4);
+            		milliseconds = byteArrayToInt(millisecondsArray);
+            		musicPlayerService.seekTo(milliseconds);
+            	}
+            	
+            	else if (packetType == STOP_PLAYBACK) {
+            		musicPlayerService.stopPlayback();
             	}
 
                 
@@ -97,5 +142,21 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
     @Override
     protected void onPostExecute(String result) {
     	
+    }
+    
+    private void sendToClients(byte[] packet) {
+    	ServerSocket serverSocket;
+		try {
+			serverSocket = new ServerSocket(8888);
+	    	for (int i=0; i<numClients; i++) {
+	    	}
+		}
+    	catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    public static int byteArrayToInt(byte[] b) {
+        return b[3] & 0xFF | (b[2] & 0xFF) << 8 | (b[1] & 0xFF) << 16 | (b[0] & 0xFF) << 24;
     }
 }

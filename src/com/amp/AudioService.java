@@ -13,6 +13,7 @@ public class AudioService extends Service {
 	private MediaPlayer player = new MediaPlayer();
 	private final IBinder binder = new LocalBinder();
 	static private boolean serviceStarted = false;
+	static private boolean playbackStopped = false;
 	private Uri currentSongUri;
 	
 	static public boolean isServiceStarted() {
@@ -46,14 +47,25 @@ public class AudioService extends Service {
 		catch(Exception e) {}
 	}
 	
-	public void pause() {
+	public void stopPlayback() {
 		if (player.isPlaying()) {
+			player.pause();
+		}
+		playbackStopped = true;
+	}
+	
+	public void allowPlayback() {
+		playbackStopped = false;
+	}
+	
+	public void pause() {
+		if (player.isPlaying() && !playbackStopped) {
 			player.pause();
 		}
 	}
 	
 	public void play() {
-		if (!player.isPlaying()) {
+		if (!player.isPlaying() && !playbackStopped) {
 			player.start();
 		}
 	}
@@ -71,7 +83,9 @@ public class AudioService extends Service {
 	}
 	
 	public void seekTo(int milliseconds) {
-		player.seekTo(milliseconds);
+		if (!playbackStopped) {
+			player.seekTo(milliseconds);
+		}
 	}
 	
 	Uri getCurrectSongUri() {
