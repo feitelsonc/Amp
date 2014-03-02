@@ -116,24 +116,22 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
             	}
             	
             	else if (packetType == FILE) {
-            		if (packetType == FILE) {
-                		byte length[] = new byte[4];
-                		inputstream.read(length,0,4);
-                		int file_length = byteArrayToInt(length);
-                		byte name[] = new byte[6];
-                		inputstream.read(name, 0, 6);
-                		String filetype = name.toString();
-                		File file = createFile(filetype);
-                		byte song_byte_array[] = new byte[file_length];
-                		inputstream.read(song_byte_array,0,file_length);
-                		FileOutputStream fileoutputstream = new FileOutputStream(file);
-                		fileoutputstream.write(song_byte_array);
-                		fileoutputstream.close();
-                		
+            		
+            		byte length[] = new byte[4];
+            		inputstream.read(length,0,4);
+            		int file_length = byteArrayToInt(length);
+            		byte name[] = new byte[6];
+            		inputstream.read(name, 0, 6);
+            		String filetype = name.toString();
+            		File file = createFile(filetype);
+            		byte song_byte_array[] = new byte[file_length];
+            		inputstream.read(song_byte_array,0,file_length);
+            		FileOutputStream fileoutputstream = new FileOutputStream(file);
+            		fileoutputstream.write(song_byte_array);
+            		fileoutputstream.close();             		
                 		// request playback location of file
-                		messageType[0] = Integer.valueOf(REQUEST_SEEK_TO).byteValue();
-                		outputStream.write(messageType);
-                	}
+            		messageType[0] = Integer.valueOf(REQUEST_SEEK_TO).byteValue();
+            		outputStream.write(messageType);
             	}
             	
             	else if (packetType == PAUSE) {
