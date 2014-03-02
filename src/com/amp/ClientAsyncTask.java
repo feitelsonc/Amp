@@ -41,7 +41,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, String> {
     public ClientAsyncTask(Context context, Uri songUri) {
         this.context = context;
         this.songUri = songUri;
-    }
 
     
 
@@ -57,25 +56,26 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, String> {
         	 * VARIABLE BYTES - FILE ITSELF
         	 */
         	
-        	if (packetType == FILE) {
-        		byte length[] = new byte[4];
-        		inputstream.read(length,0,4);
-        		int file_length = byteArrayToInt(length);
-        		byte name[] = new byte[6];
-        		inputstream.read(name, 0, 6);
-        		String filetype = name.toString();
-        		File file = createFile(filetype);
-        		byte song_byte_array[] = new byte[file_length];
-        		inputstream.read(song_byte_array,0,file_length);
-        		FileOutputStream fileoutputstream = new FileOutputStream(file);
-        		fileoutputstream.write(song_byte_array);
-        		fileoutputstream.close();
-        		//copyFile(inputstream, new FileOutputStream(file));
-        	}
+//        	if (packetType == FILE) {
+//        		byte length[] = new byte[4];
+//        		inputstream.read(length,0,4);
+//        		int file_length = byteArrayToInt(length);
+//        		byte name[] = new byte[6];
+//        		inputstream.read(name, 0, 6);
+//        		String filetype = name.toString();
+//        		File file = createFile(filetype);
+//        		byte song_byte_array[] = new byte[file_length];
+//        		inputstream.read(song_byte_array,0,file_length);
+//        		FileOutputStream fileoutputstream = new FileOutputStream(file);
+//        		fileoutputstream.write(song_byte_array);
+//        		fileoutputstream.close();
+//        		//copyFile(inputstream, new FileOutputStream(file));
+//        	}
         	
-        	if (packetType == FILE_REQUEST) {
-        		
-        	}
+//        	if (packetType == FILE_REQUEST) {
+//        		
+//        	}
+    }
             
         	
             
