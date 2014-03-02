@@ -77,6 +77,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     private ArrayList <WifiP2pDevice> devices = new ArrayList<WifiP2pDevice>();
     private String currentGroupAddress;
 
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -110,6 +111,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        }
 		    }
 		});
+		
 		
 		intentType = getIntent().getStringExtra(SplashScreenActivity.GROUP_ACTION_EXTRA);
 		
