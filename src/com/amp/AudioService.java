@@ -47,6 +47,21 @@ public class AudioService extends Service {
 		catch(Exception e) {}
 	}
 	
+	public void initializeSongAndPause(Uri uri) {
+		currentSongUri = uri;
+		
+		player.release();
+		player = new MediaPlayer();
+		try {
+			player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+			player.setDataSource(getApplicationContext(), currentSongUri);
+			player.prepare();
+			player.start();
+			player.pause();
+		}
+		catch(Exception e) {}
+	}
+	
 	public void stopPlayback() {
 		if (player.isPlaying()) {
 			player.pause();
@@ -76,6 +91,10 @@ public class AudioService extends Service {
 	
 	public int getPosition() {
 		return player.getCurrentPosition()/1000;
+	}
+	
+	public int getCurrentPosition() {
+		return player.getCurrentPosition();
 	}
 	
 	public int getDuration() {
