@@ -184,7 +184,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		
 		if (masterMode) {
 			mManager.createGroup(mChannel, new WifiP2pManager.ActionListener(){
-    			
+    			ServerAsyncTask server = new ServerAsyncTask(getApplicationContext(),selectedSongUri); 
     			@Override
     			public void onSuccess(){
     				connected = true;
@@ -208,6 +208,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     				Toast.makeText(getApplicationContext(), "Error: " + Integer.valueOf(reason).toString() + " creating group", Toast.LENGTH_SHORT).show();
     			}
     		});
+		}
+		
+		else{
+			
 		}
 	
 	}

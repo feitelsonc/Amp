@@ -121,6 +121,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
             	}
             	
             	else if (packetType == FILE) {
+
             		byte length[] = new byte[4];
             		inputstream.read(length,0,4);
             		int file_length = byteArrayToInt(length);
@@ -128,7 +129,6 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
             		inputstream.read(name, 0, 6);
             		String filetype = name.toString();
             		File file = createFile(filetype);
-            		
             		Uri uri = Uri.fromFile(file);
             		songByteArray = new byte[file_length];
             		inputstream.read(songByteArray,0,file_length);
@@ -139,8 +139,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
             		musicPlayerService.initializeSongAndPause(uri);
             		
             		broadcastStopPlayback();
-            		broadcastSong();
-            		
+            		broadcastSong();         		
             		// request playback location of file
             		messageType[0] = Integer.valueOf(REQUEST_SEEK_TO).byteValue();
             		outputStream.write(messageType);
