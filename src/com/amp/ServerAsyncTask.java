@@ -16,8 +16,9 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.widget.Toast;
 
-public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
+public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	
 	private static final int CONNECT = 0;
     private static final int DISCONNECT = 1;
@@ -64,9 +65,9 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
     }
     
     @Override
-    protected String doInBackground(Void... params) {
+    protected Void doInBackground(Void... params) {
         try {
-        	
+        	Toast.makeText(context, "Server Started", Toast.LENGTH_SHORT).show();
         	FileInputStream fileinputstream;
         	try {
         		File songfile = new File(songUri.getPath());
@@ -238,12 +239,6 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, String> {
 			e.printStackTrace();
 		}
 		return f;
-    }
-    
-    
-    @Override
-    protected void onPostExecute(String result) {
-    	
     }
     
     private void sendToClients(byte[] packet) {

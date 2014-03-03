@@ -188,16 +188,17 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     			@Override
     			public void onSuccess(){
     				connected = true;
-    				Toast.makeText(getApplicationContext(), "Group Created.", Toast.LENGTH_SHORT).show();
+    				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
     				
     				mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
 
 						@Override
 						public void onConnectionInfoAvailable(WifiP2pInfo info) {
-							Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+//							Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
 							
-							// begin running server async task here
-							ServerAsyncTask server = new ServerAsyncTask(getApplicationContext(), musicPlayerService); 
+							// begin running server async task
+							ServerAsyncTask server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService);
+							server.doInBackground();
 						}
 						
 					});
@@ -260,6 +261,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    }
 	    else {
 	    	menu.findItem(R.id.exitGroup).setVisible(false);
+	    }
+	    
+	    if (masterMode) {
+	    	menu.findItem(R.id.joinGroup).setVisible(false);
+	    }
+	    else {
+	    	menu.findItem(R.id.joinGroup).setVisible(true);
 	    }
 	    return super.onCreateOptionsMenu(menu);
 	}
@@ -584,7 +592,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 
     								@Override
     								public void onConnectionInfoAvailable(WifiP2pInfo info) {
-    									Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+    									// initiate client async task to connect to server
+//    									Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
     								}
     	    						
     	    					});
