@@ -190,6 +190,16 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     				connected = true;
     				Toast.makeText(getApplicationContext(), "Group Created.", Toast.LENGTH_SHORT).show();
     				
+    				mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
+
+						@Override
+						public void onConnectionInfoAvailable(WifiP2pInfo info) {
+							Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+							
+							// begin running server async task here
+						}
+						
+					});
     			}
     			
     			@Override
@@ -443,17 +453,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    				
 	    				if (!groupInfoChanged) {
 	    					
-	    					mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
-
-								@Override
-								public void onConnectionInfoAvailable(
-										WifiP2pInfo info) {
-									// TODO Auto-generated method stub
-									Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
-								}
-	    						
-	    					});
-	    					
 	    					mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener(){ 
 		    					
 								@Override
@@ -575,6 +574,15 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         						Toast.makeText(getApplicationContext(), "Connected to: " + config.deviceAddress,Toast.LENGTH_SHORT).show();
         						connected = true;
         						invalidateOptionsMenu();
+        						
+        						mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
+
+    								@Override
+    								public void onConnectionInfoAvailable(WifiP2pInfo info) {
+    									Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+    								}
+    	    						
+    	    					});
         					}
     	
         					@Override
