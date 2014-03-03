@@ -100,7 +100,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		clientUuid[0] = Integer.valueOf(numClients).byteValue();
             		outputStream.write(messageType);
             		outputStream.write(clientUuid);
-            		
+            		Toast.makeText(musicPlayerService, "Received a CONNECT packet.", Toast.LENGTH_SHORT).show();
             		dictionary.put(Integer.valueOf(numClients).toString(), client);
             		
             		numClients++;

@@ -67,7 +67,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	private AudioService musicPlayerService = null;
     private Handler handler = new Handler();
     private Ticker ticker = null;
-
+    private boolean servconnection = false;
     // private variables for wifi direct
     private WifiP2pManager mManager;
     private Channel mChannel;
@@ -593,7 +593,15 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     								@Override
     								public void onConnectionInfoAvailable(WifiP2pInfo info) {
     									// initiate client async task to connect to server
-//    									Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+    									if(masterMode==false)
+    									{
+    										
+    										/*ClientAsyncTask client = new ClientAsyncTask(getApplicationContext(),musicPlayerService,info.groupOwnerAddress.getHostAddress());
+    										client.doInBackground();
+    										servconnection = true;*/
+    									}
+    										
+    									//Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
     								}
     	    						
     	    					});
