@@ -72,14 +72,11 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         	try {
         		File songfile = new File(songUri.getPath());
         		fileinputstream = new FileInputStream(songfile);
-        		int songByteLength = (int) songfile.length();
+        		songByteLength = (int) songfile.length();
         		songByteArray = new byte[songByteLength];
         		fileinputstream.read(songByteArray, 0, songByteLength);
-        		/*for (int i=0; i<songfile.length(); i++) {
-        			songByteArray[i] = (byte) inputStream.read();
-        		}*/
         		fileinputstream.close();
-        		} catch (Exception e) {  
+        	} catch (Exception e) {  
         		e.printStackTrace();  
         	}
         	
@@ -112,27 +109,26 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType == FILE_REQUEST) {
-            		byte[] packet = new byte[songByteLength+1];
-                	packet[0] = Integer.valueOf(FILE).byteValue();
-                	
-                	for (int i=1; i<songByteLength+1; i++) {
-                		packet[i] = songByteArray[i-1];
-                	}
-                	outputStream.write(packet);
+            		messageType[0] = Integer.valueOf(FILE).byteValue();
+
+                	outputStream.write(messageType);
+                	outputStream.write(songByteArray);
             	}
             	
             	else if (packetType == FILE) {
 
             		byte length[] = new byte[4];
-            		inputstream.read(length,0,4);
-            		int file_length = byteArrayToInt(length);
-            		byte name[] = new byte[6];
-            		inputstream.read(name, 0, 6);
-            		String filetype = name.toString();
+            		inputstream.read(length, 0, 4);
+            		int fileLength = byteArrayToInt(length);
+            		byte fileExtention[] = new byte[6];
+            		inputstream.read(fileExtention, 0, 6);
+            		String filetype = fileExtention.toString();
+            		//TODO: filetype = new String(fileExtention); // might need to create string this way
             		File file = createFile(filetype);
             		Uri uri = Uri.fromFile(file);
-            		songByteArray = new byte[file_length];
-            		inputstream.read(songByteArray,0,file_length);
+            		songByteArray = new byte[fileLength];
+            		songByteLength = fileLength;
+            		inputstream.read(songByteArray, 0, fileLength);
             		FileOutputStream fileoutputstream = new FileOutputStream(file);
             		fileoutputstream.write(songByteArray);
             		fileoutputstream.close();
@@ -140,7 +136,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.initializeSongAndPause(uri);
             		
             		broadcastStopPlayback();
-            		broadcastSong();         		
+            		broadcastSong();   
+            		
             		// request playback location of file
             		messageType[0] = Integer.valueOf(REQUEST_SEEK_TO).byteValue();
             		outputStream.write(messageType);
@@ -197,8 +194,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     public void broadcastSeekTo() {
     	byte[] packet = new byte[5];
     	packet[0] = Integer.valueOf(SEEK_TO).byteValue();
-    	int milliseconds = musicPlayerService.getCurrentPosition();
     	byte[] millisecondsArray = new byte[4];
+    	int milliseconds = musicPlayerService.getCurrentPosition();
     	millisecondsArray = intToByteArray(milliseconds);
     	for (int i=1; i<5; i++) {
     		packet[i] = millisecondsArray[i-1];
@@ -215,6 +212,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     public void broadcastSong() {
     	byte[] packet = new byte[songByteLength+1];
     	packet[0] = Integer.valueOf(FILE).byteValue();
+    	
+    	//TODO: we need to also add the file length and the file extension before sending
     	
     	for (int i=1; i<songByteLength+1; i++) {
     		packet[i] = songByteArray[i-1];
