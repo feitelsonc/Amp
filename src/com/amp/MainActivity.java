@@ -76,6 +76,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     protected PeerListListener myPeerListListener;
     private ArrayList <WifiP2pDevice> devices = new ArrayList<WifiP2pDevice>();
     private String currentGroupAddress;
+    private ServerAsyncTask server = null;
+    private ClientAsyncTask client = null;
 
 
 	@Override
@@ -103,11 +105,25 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        	playPause.setBackgroundResource(R.drawable.btn_play);
 		        	if(musicPlayerService.isPlaying()) {
 		        		musicPlayerService.pause();
+		        		
+		        		if (masterMode && server != null) {
+		        			server.broadcastPause();
+		        		}
+		        		else if (!masterMode && client != null) {
+		        			client.sendPause();
+		        		}
 		        	}
 		        } else {
 		            // Pause is set
 		        	playPause.setBackgroundResource(R.drawable.btn_pause);
 		        	musicPlayerService.play();
+		        	
+		        	if (masterMode && server != null) {
+	        			server.broadcastPlay();
+	        		}
+		        	else if (!masterMode && client != null) {
+	        			client.sendPlay();
+	        		}
 		        }
 		    }
 		});
@@ -189,7 +205,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     			public void onSuccess(){
     				connected = true;
     				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
-					ServerAsyncTask server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService);
+					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService);
 					server.doInBackground();
     			}
     			
@@ -538,6 +554,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		musicProgress.setProgress(musicProgress.getProgress());
 		if (musicPlayerService != null && musicPlayerService.isPlaying()) {
 			musicPlayerService.seekTo(musicProgress.getProgress()*1000);
+			
+			if (masterMode && server != null) {
+    			server.broadcastSeekTo();
+    		}
+        	else if (!masterMode && client != null) {
+    			client.sendSeekTo();
+    		}
 		}
 	}
 
