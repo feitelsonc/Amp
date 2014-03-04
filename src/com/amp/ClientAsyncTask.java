@@ -103,12 +103,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		Toast.makeText(context, "Received a WELCOME packet.", Toast.LENGTH_SHORT).show();
             	}
             	
-            	else if (packetType == DISCONNECT) {
-            		int uuidToRemove = inputstream.read();            		
-            		socket.close();
-            		
-            	}
-            	
             	else if (packetType == FILE_REQUEST) {
             		byte[] packet = new byte[songByteLength+1];
                 	packet[0] = Integer.valueOf(FILE).byteValue();
@@ -211,8 +205,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 			e.printStackTrace();
 		}
     }
-    
-
     
     private File createFile(String FileType){
     	String date = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
