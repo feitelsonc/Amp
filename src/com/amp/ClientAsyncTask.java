@@ -98,8 +98,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType == DISCONNECT) {
-            		int uuidToRemove = inputstream.read();
-            		
+            		int uuidToRemove = inputstream.read();            		
             		socket.close();
             		
             	}

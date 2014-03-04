@@ -602,37 +602,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         						Toast.makeText(getApplicationContext(), "Connected to: " + config.deviceAddress,Toast.LENGTH_SHORT).show();
         						connected = true;
         						invalidateOptionsMenu();
+        						recInitConnection(mManager);
         					}	
         						
     	
         					@Override
         					public void onFailure(int reason) {}
         				});
-        				int i=0;
-						while(i<50)
-						{
-							Log.d("Wha",Integer.valueOf(i).toString());
-							try {
-								Thread.sleep(100);
-							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							i++;
-						}
-        				mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
-
-							@Override
-							public void onConnectionInfoAvailable(WifiP2pInfo info) {
-
-								ClientAsyncTask client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress());
-								client.doInBackground();
-								servconnection = true;
-									
-								Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
-							
-							}
-    					});
 					}
     				
     				else {
@@ -677,6 +653,26 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			stopService(new Intent(this, AudioService.class));
 			unbindToMusicPlayerService();
 		}
+	}
+	
+	public void recInitConnection(WifiP2pManager manager){
+		mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
+
+			@Override
+			public void onConnectionInfoAvailable(WifiP2pInfo info) {
+				if(info.groupOwnerAddress==null)
+				{
+					recInitConnection(mManager);
+				}
+				else
+				{
+				client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress());
+				client.doInBackground();
+				servconnection = true;	
+				Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+				}
+			}
+		});
 	}
 
 }
