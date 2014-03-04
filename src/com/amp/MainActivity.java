@@ -599,7 +599,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         						Toast.makeText(getApplicationContext(), "Connected to: " + config.deviceAddress,Toast.LENGTH_SHORT).show();
         						connected = true;
         						invalidateOptionsMenu();
-        						recInitConnection(mManager);
+        						recursivelyInitializeServerConnection(mManager);
         					}	
         						
     	
@@ -652,21 +652,19 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		}
 	}
 	
-	public void recInitConnection(WifiP2pManager manager){
+	public void recursivelyInitializeServerConnection(WifiP2pManager manager){
 		mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
 
 			@Override
 			public void onConnectionInfoAvailable(WifiP2pInfo info) {
-				if(info.groupOwnerAddress==null)
-				{
-					recInitConnection(mManager);
+				if(info.groupOwnerAddress==null) {
+					recursivelyInitializeServerConnection(mManager);
 				}
-				else
-				{
-				client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress());
-				client.doInBackground();
-				servconnection = true;	
-				Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+				else {
+					client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress());
+					client.doInBackground();
+					servconnection = true;	
+//					Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
 				}
 			}
 		});

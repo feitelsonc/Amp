@@ -11,8 +11,5 @@
           android:icon="@drawable/btn_change_song"
           android:title="@string/action_change_song"
           android:showAsAction="always" />
-    <item android:id="@+id/action_settings"
-          android:title="@string/action_settings"
-          android:showAsAction="never" />
 
 </menu>
