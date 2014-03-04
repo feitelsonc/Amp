@@ -77,13 +77,19 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             byte[] messageType = new byte[1];
             
             Socket socket = new Socket();
+            Toast.makeText(context, "HERE1", Toast.LENGTH_SHORT).show();
             socket.bind(null);
-            socket.connect(new InetSocketAddress(server,8888));
+            Toast.makeText(context, "HERE2", Toast.LENGTH_SHORT).show();
+            socket.connect(new InetSocketAddress(server, 8888));
+            Toast.makeText(context, "HERE3", Toast.LENGTH_SHORT).show();
             InputStream inputstream = socket.getInputStream();
+            Toast.makeText(context, "HERE4", Toast.LENGTH_SHORT).show();
             outputStream = socket.getOutputStream();
+            Toast.makeText(context, "HERE5", Toast.LENGTH_SHORT).show();
             
             messageType[0]=Integer.valueOf(CONNECT).byteValue();
             outputStream.write(messageType);
+            Toast.makeText(context, "Sent CONNECT", Toast.LENGTH_SHORT).show();
             
             while (true) {
             	
