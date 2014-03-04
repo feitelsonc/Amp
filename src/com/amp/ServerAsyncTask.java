@@ -117,13 +117,12 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	
             	else if (packetType == FILE) {
 
-            		byte length[] = new byte[4];
+            		byte[] length = new byte[4];
             		inputstream.read(length, 0, 4);
             		int fileLength = byteArrayToInt(length);
-            		byte fileExtention[] = new byte[6];
+            		byte[] fileExtention = new byte[6];
             		inputstream.read(fileExtention, 0, 6);
-            		String filetype = fileExtention.toString();
-            		//TODO: filetype = new String(fileExtention); // might need to create string this way
+            		String filetype = new String(fileExtention);
             		File file = createFile(filetype);
             		Uri uri = Uri.fromFile(file);
             		songByteArray = new byte[fileLength];
@@ -134,6 +133,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		fileoutputstream.close();
             		
             		musicPlayerService.initializeSongAndPause(uri);
+            		songUri = musicPlayerService.getCurrectSongUri();
             		
             		broadcastStopPlayback();
             		broadcastSong();   
@@ -157,7 +157,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	
             	else if (packetType == SEEK_TO) {
             		int milliseconds = 0;
-            		byte millisecondsArray[] = new byte [4];
+            		byte[] millisecondsArray = new byte [4];
             		inputstream.read(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
@@ -210,13 +210,20 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void broadcastSong() {
-    	byte[] packet = new byte[songByteLength+1];
+    	byte[] packet = new byte[songByteLength+11];
     	packet[0] = Integer.valueOf(FILE).byteValue();
     	
-    	//TODO: we need to also add the file length and the file extension before sending
+    	byte[] length = intToByteArray(songByteLength);
+    	byte[] fileExtention = songUri.toString().substring(songUri.toString().length()-3).getBytes();
     	
-    	for (int i=1; i<songByteLength+1; i++) {
-    		packet[i] = songByteArray[i-1];
+    	for (int i=1; i<5; i++) {
+    		packet[i] = length[i-1];
+    	}
+    	for (int i=5; i<11; i++) {
+    		packet[i] = fileExtention[i-5];
+    	}
+    	for (int i=11; i<songByteLength+11; i++) {
+    		packet[i] = songByteArray[i-11];
     	}
     	
     	sendToClients(packet);
