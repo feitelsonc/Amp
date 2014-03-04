@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Calendar;
@@ -14,6 +15,9 @@ import java.util.Map;
 
 import android.content.Context;
 import android.net.Uri;
+import android.net.wifi.p2p.WifiP2pInfo;
+import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.widget.Toast;
@@ -39,11 +43,18 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private Uri songUri;
     private byte[] songByteArray;
     private int songByteLength;
-
-    public ServerAsyncTask(Context context, AudioService musicPlayerService) {
+    private WifiP2pManager manager;
+    private String IPaddress;
+    private Channel mChannel;
+    
+    	public ServerAsyncTask(Context context, AudioService musicPlayerService,WifiP2pManager manager,Channel mChannel) {
         this.context = context;
         this.musicPlayerService = musicPlayerService;
         this.songUri = musicPlayerService.getCurrectSongUri();
+        this.manager = manager;
+        this.mChannel = mChannel;
+        //The following function automatically calls the doInBackground function, once the IPaddress has been properly set.
+        recursivelySetIPAddress(manager,mChannel);
     }
     
     public static int byteArrayToInt(byte[] b) 
@@ -82,10 +93,15 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         	
             byte[] messageType = new byte[1];
             byte[] clientUuid = new byte[1];
-            
-            while (true) {
+            while (true)
+            {
+//            	ServerSocket serverSocket = new ServerSocket(8888,50,InetAddress.getByName(IPaddress));
             	ServerSocket serverSocket = new ServerSocket(8888);
+//            	Toast.makeText(context, "Before serverSocket.accept()", Toast.LENGTH_SHORT).show();
+            	Toast.makeText(context, serverSocket.getInetAddress().getHostAddress(),Toast.LENGTH_SHORT).show();
+            	Toast.makeText(context, serverSocket.getLocalSocketAddress().toString(),Toast.LENGTH_SHORT).show();
             	Socket client = serverSocket.accept();
+//            	Toast.makeText(context, "After serverSocket.accept()", Toast.LENGTH_SHORT).show();
             	InputStream inputstream = client.getInputStream();
             	OutputStream outputStream = client.getOutputStream();
             	
@@ -185,8 +201,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	serverSocket.close();
-            }
-            
+        }
         } catch (Exception e) {
         }
 		return null;
@@ -273,5 +288,24 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 			}
 		}
     }
+    
+    private void recursivelySetIPAddress(WifiP2pManager mManager,Channel channel){
+		mManager.requestConnectionInfo(channel, new WifiP2pManager.ConnectionInfoListener(){
+
+			@Override
+			public void onConnectionInfoAvailable(WifiP2pInfo info) {
+				if(info.groupOwnerAddress==null)
+				{
+					recursivelySetIPAddress(manager,mChannel);
+				}
+				else
+				{
+				IPaddress = info.groupOwnerAddress.getHostAddress();
+//				Toast.makeText(context, IPaddress, Toast.LENGTH_SHORT).show();
+				doInBackground();
+				}
+			}
+		});
+	}
     
 }

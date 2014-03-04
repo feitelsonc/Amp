@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Calendar;
@@ -80,7 +81,8 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             Toast.makeText(context, "HERE1", Toast.LENGTH_SHORT).show();
             socket.bind(null);
             Toast.makeText(context, "HERE2", Toast.LENGTH_SHORT).show();
-            socket.connect(new InetSocketAddress(server, 8888));
+            Toast.makeText(context, server,Toast.LENGTH_SHORT).show();
+            socket.connect(new InetSocketAddress(InetAddress.getByName(server), 8888));
             Toast.makeText(context, "HERE3", Toast.LENGTH_SHORT).show();
             InputStream inputstream = socket.getInputStream();
             Toast.makeText(context, "HERE4", Toast.LENGTH_SHORT).show();

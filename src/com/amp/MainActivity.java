@@ -206,8 +206,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     			public void onSuccess(){
     				connected = true;
     				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
-					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService);
-					server.doInBackground();
+					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService,mManager,mChannel);
     			}
     			
     			@Override
@@ -607,7 +606,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         					@Override
         					public void onFailure(int reason) {}
         				});
-        				recInitConnection(mManager);
 					}
     				
     				else {
