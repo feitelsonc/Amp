@@ -17,7 +17,7 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.widget.Toast;
 
-public class ClientAsyncTask extends AsyncTask<Void, Void, String> {
+public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 	
 	private static final int CONNECT = 0;
     private static final int DISCONNECT = 1;
@@ -72,7 +72,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, String> {
     }
     
     @Override
-    protected String doInBackground(Void... params) {
+    protected Void doInBackground(Void... params) {
         try {
         	
             byte[] messageType = new byte[1];
@@ -199,9 +199,4 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, String> {
 		return f;
     }
     
-    
-    @Override
-    protected void onPostExecute(String result) {
-    	
-    }
 }

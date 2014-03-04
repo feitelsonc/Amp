@@ -227,6 +227,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     	}
     	
     	sendToClients(packet);
+    	//sendToClients(songByteArray);
     }
     
     private File createFile(String FileType){

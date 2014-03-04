@@ -189,19 +189,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     			public void onSuccess(){
     				connected = true;
     				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
-    				
-    				mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
-
-						@Override
-						public void onConnectionInfoAvailable(WifiP2pInfo info) {
-//							Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
-							
-							// begin running server async task
-							ServerAsyncTask server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService);
-							server.doInBackground();
-						}
-						
-					});
+					ServerAsyncTask server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService);
+					server.doInBackground();
     			}
     			
     			@Override
@@ -256,19 +245,21 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		// Inflate the menu items for use in the action bar
 	    MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.main_activity_actions, menu);
-	    if (connected) {
-	    	menu.findItem(R.id.joinGroup).setVisible(false);
+	    if (!masterMode) {
+	    	if (connected) {
+		    	menu.findItem(R.id.joinGroup).setVisible(false);
+		    	menu.findItem(R.id.exitGroup).setVisible(true);
+		    }
+		    else {
+		    	menu.findItem(R.id.joinGroup).setVisible(true);
+		    	menu.findItem(R.id.exitGroup).setVisible(false);
+		    }
 	    }
 	    else {
+	    	menu.findItem(R.id.joinGroup).setVisible(false);
 	    	menu.findItem(R.id.exitGroup).setVisible(false);
 	    }
 	    
-	    if (masterMode) {
-	    	menu.findItem(R.id.joinGroup).setVisible(false);
-	    }
-	    else {
-	    	menu.findItem(R.id.joinGroup).setVisible(true);
-	    }
 	    return super.onCreateOptionsMenu(menu);
 	}
 	
@@ -592,16 +583,11 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 
     								@Override
     								public void onConnectionInfoAvailable(WifiP2pInfo info) {
-    									// initiate client async task to connect to server
-    									if(masterMode==false)
-    									{
+    									ClientAsyncTask client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress());
+    									client.doInBackground();
+    									servconnection = true;
     										
-    										/*ClientAsyncTask client = new ClientAsyncTask(getApplicationContext(),musicPlayerService,info.groupOwnerAddress.getHostAddress());
-    										client.doInBackground();
-    										servconnection = true;*/
-    									}
-    										
-    									//Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+    									Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
     								}
     	    						
     	    					});
