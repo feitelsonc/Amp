@@ -106,7 +106,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	if (packetType == WELCOME){
             		messageType[0]=Integer.valueOf(FILE_REQUEST).byteValue();
             		outputStream.write(messageType);
-            		Toast.makeText(musicPlayerService, "Received a WELCOME packet.", Toast.LENGTH_SHORT).show();
+            		Toast.makeText(context, "Received a WELCOME packet.", Toast.LENGTH_SHORT).show();
             	}
             	
             	else if (packetType == DISCONNECT) {

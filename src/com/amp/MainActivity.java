@@ -29,6 +29,7 @@ import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -578,25 +579,39 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         						Toast.makeText(getApplicationContext(), "Connected to: " + config.deviceAddress,Toast.LENGTH_SHORT).show();
         						connected = true;
         						invalidateOptionsMenu();
+        					}	
         						
-        						mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
-
-    								@Override
-    								public void onConnectionInfoAvailable(WifiP2pInfo info) {
-    									ClientAsyncTask client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress());
-    									client.doInBackground();
-    									servconnection = true;
-    										
-    									Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
-    								}
-    	    						
-    	    					});
-        					}
     	
         					@Override
         					public void onFailure(int reason) {}
         				});
-    				}
+        				int i=0;
+						while(i<50)
+						{
+							Log.d("Wha",Integer.valueOf(i).toString());
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							i++;
+						}
+        				mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
+
+							@Override
+							public void onConnectionInfoAvailable(WifiP2pInfo info) {
+
+								ClientAsyncTask client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress());
+								client.doInBackground();
+								servconnection = true;
+									
+								Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
+							
+							}
+    					});
+					}
+    				
     				else {
     					Toast.makeText(getApplicationContext(), "No device found with that address", Toast.LENGTH_SHORT).show();
     				}
