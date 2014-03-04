@@ -89,7 +89,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	InputStream inputstream = client.getInputStream();
             	OutputStream outputStream = client.getOutputStream();
             	
-            	//Reads the first byte off the packet, this should always be packettype.
+            	// Reads the first byte of the packet to determine packet type
             	int packetType = inputstream.read();
             	
             	if (packetType == CONNECT) {
@@ -109,10 +109,23 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType == FILE_REQUEST) {
-            		messageType[0] = Integer.valueOf(FILE).byteValue();
-
-                	outputStream.write(messageType);
-                	outputStream.write(songByteArray);
+                	byte[] packet = new byte[songByteLength+11];
+                	packet[0] = Integer.valueOf(FILE).byteValue();
+                	
+                	byte[] length = intToByteArray(songByteLength);
+                	byte[] fileExtention = songUri.toString().substring(songUri.toString().length()-3).getBytes();
+                	
+                	for (int i=1; i<5; i++) {
+                		packet[i] = length[i-1];
+                	}
+                	for (int i=5; i<11; i++) {
+                		packet[i] = fileExtention[i-5];
+                	}
+                	for (int i=11; i<songByteLength+11; i++) {
+                		packet[i] = songByteArray[i-11];
+                	}
+                	
+                	outputStream.write(packet);
             	}
             	
             	else if (packetType == FILE) {
