@@ -540,13 +540,11 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 
 	@Override
 	public void onProgressChanged(SeekBar musicProgress, int arg1, boolean arg2) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void onStartTrackingTouch(SeekBar musicProgress) {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -609,6 +607,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         					@Override
         					public void onFailure(int reason) {}
         				});
+        				recInitConnection(mManager);
 					}
     				
     				else {
