@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Calendar;
@@ -14,12 +13,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
-import android.net.wifi.p2p.WifiP2pInfo;
-import android.net.wifi.p2p.WifiP2pManager;
-import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.provider.MediaStore;
+import android.util.Log;
 import android.widget.Toast;
 
 public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -43,30 +42,21 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private Uri songUri;
     private byte[] songByteArray;
     private int songByteLength;
-    private WifiP2pManager manager;
-    private String IPaddress;
-    private Channel mChannel;
     
-    	public ServerAsyncTask(Context context, AudioService musicPlayerService,WifiP2pManager manager,Channel mChannel) {
+    public ServerAsyncTask(Context context, AudioService musicPlayerService) {
         this.context = context;
         this.musicPlayerService = musicPlayerService;
-        this.songUri = musicPlayerService.getCurrectSongUri();
-        this.manager = manager;
-        this.mChannel = mChannel;
-        //The following function automatically calls the doInBackground function, once the IPaddress has been properly set.
-        recursivelySetIPAddress(manager,mChannel);
+        this.songUri = musicPlayerService.getCurrentTrackUri();
     }
     
-    public static int byteArrayToInt(byte[] b) 
-    {
+    public static int byteArrayToInt(byte[] b) {
         return b[3] & 0xFF |
                (b[2] & 0xFF) << 8 |
                (b[1] & 0xFF) << 16 |
                (b[0] & 0xFF) << 24;
     }
 
-    public static byte[] intToByteArray(int a)
-    {
+    public static byte[] intToByteArray(int a) {
         return new byte[] {
             (byte) ((a >> 24) & 0xFF),
             (byte) ((a >> 16) & 0xFF),   
@@ -78,42 +68,42 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... params) {
         try {
-        	Toast.makeText(context, "Server Started", Toast.LENGTH_SHORT).show();
-        	FileInputStream fileinputstream;
-        	try {
-        		File songfile = new File(songUri.getPath());
-        		fileinputstream = new FileInputStream(songfile);
-        		songByteLength = (int) songfile.length();
-        		songByteArray = new byte[songByteLength];
-        		fileinputstream.read(songByteArray, 0, songByteLength);
-        		fileinputstream.close();
-        	} catch (Exception e) {  
-        		e.printStackTrace();  
-        	}
+        	
+//        	FileInputStream fileinputstream;
+//        	try {
+//        		File songfile = new File(songUri.getPath());
+//        		fileinputstream = new FileInputStream(songfile);
+//        		songByteLength = (int) songfile.length();
+//        		songByteArray = new byte[songByteLength];
+//        		fileinputstream.read(songByteArray, 0, songByteLength);
+//        		fileinputstream.close();
+//        	} catch (Exception e) {  
+//        		e.printStackTrace();  
+//        	}
         	
             byte[] messageType = new byte[1];
             byte[] clientUuid = new byte[1];
-            while (true)
-            {
-//            	ServerSocket serverSocket = new ServerSocket(8888,50,InetAddress.getByName(IPaddress));
-            	ServerSocket serverSocket = new ServerSocket(8888);
-//            	Toast.makeText(context, "Before serverSocket.accept()", Toast.LENGTH_SHORT).show();
-            	Toast.makeText(context, serverSocket.getInetAddress().getHostAddress(),Toast.LENGTH_SHORT).show();
-            	Toast.makeText(context, serverSocket.getLocalSocketAddress().toString(),Toast.LENGTH_SHORT).show();
-            	Socket client = serverSocket.accept();
-//            	Toast.makeText(context, "After serverSocket.accept()", Toast.LENGTH_SHORT).show();
-            	InputStream inputstream = client.getInputStream();
-            	OutputStream outputStream = client.getOutputStream();
+            
+        	ServerSocket serverSocket = new ServerSocket(8888);
+        	Log.d("server log", "before client connects");
+        	Socket client = serverSocket.accept();
+
+        	Log.d("server log", "client connected");
+        	InputStream inputstream = client.getInputStream();
+        	OutputStream outputStream = client.getOutputStream();
+            
+            while (true) {
+
             	
             	// Reads the first byte of the packet to determine packet type
             	int packetType = inputstream.read();
             	
             	if (packetType == CONNECT) {
+            		Log.d("server log", "received connect packet from client");
             		messageType[0] = Integer.valueOf(WELCOME).byteValue();
             		clientUuid[0] = Integer.valueOf(numClients).byteValue();
             		outputStream.write(messageType);
             		outputStream.write(clientUuid);
-            		Toast.makeText(context, "Received a CONNECT packet.", Toast.LENGTH_SHORT).show();
             		dictionary.put(Integer.valueOf(numClients).toString(), client);
             		
             		numClients++;
@@ -122,36 +112,68 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	else if (packetType == DISCONNECT) {
             		int uuidToRemove = inputstream.read();
             		dictionary.remove(Integer.valueOf(uuidToRemove).toString());
+            		Log.d("server log", "client disconnected");
             	}
             	
             	else if (packetType == FILE_REQUEST) {
-                	byte[] packet = new byte[songByteLength+11];
+            		Log.d("server log", "client requested song");
+            		
+            		// get current track file from musicPlayerService
+            		songUri = musicPlayerService.getCurrentTrackUri();
+            		
+            		FileInputStream songFileinputstream;
+                	try {
+                		File songfile = new File(getPath(songUri));
+                		Log.d("server log", "this is the File songfile.toUri() "+songfile.toURI());
+                		Log.d("server log", "this is the File songfile.exists() "+Boolean.valueOf(songfile.exists()).toString());
+                		Log.d("server log", "this is the File songfile.getName() "+songfile.getName());
+                		Log.d("server log", "this is the entire uri path "+getPath(songUri));
+                		songFileinputstream = new FileInputStream(songfile);
+                		songByteLength = (int) songfile.length();
+                		Log.d("server log", "this is the file's length "+Integer.valueOf((int)songfile.length()).toString());
+                		songByteArray = new byte[songByteLength];
+                		songFileinputstream.read(songByteArray, 0, songByteLength);
+                		songFileinputstream.close();
+                	} catch (Exception e) {  
+                		e.printStackTrace();  
+                	}
+            		
+                	byte[] packet = new byte[songByteLength+8];
                 	packet[0] = Integer.valueOf(FILE).byteValue();
-                	
                 	byte[] length = intToByteArray(songByteLength);
-                	byte[] fileExtention = songUri.toString().substring(songUri.toString().length()-3).getBytes();
-                	
+//                	byte[] fileExtension = songUri.toString().substring(songUri.getPath().length()-3).getBytes();
+//                	
+//                	Log.d("server log", "this is the entire file name"+songUri.getPath());
+//                	Log.d("server log", "this is the file extension, before byte array conversion."+songUri.toString().substring(songUri.getPath().length()-3));
+//                	Log.d("server log", "this is the file extension, after byte array conversion, and then conversion back to string."+new String(fileExtension));
+                	byte[] fileExtension = "mp3".getBytes();
                 	for (int i=1; i<5; i++) {
                 		packet[i] = length[i-1];
                 	}
-                	for (int i=5; i<11; i++) {
-                		packet[i] = fileExtention[i-5];
+
+                	Log.d("server log", "this is the songbyte length"+Integer.valueOf(songByteLength));
+                	
+                	for (int i=5; i<8; i++) {
+                		packet[i] = fileExtension[i-5];
                 	}
-                	for (int i=11; i<songByteLength+11; i++) {
-                		packet[i] = songByteArray[i-11];
+
+                	for (int i=8; i<songByteLength+8; i++) {
+                		packet[i] = songByteArray[i-8];
                 	}
                 	
                 	outputStream.write(packet);
+                	Log.d("server log", "packet away. weeeeeee");
             	}
-            	
+
             	else if (packetType == FILE) {
+            		Log.d("server log", "received song from client");
 
             		byte[] length = new byte[4];
             		inputstream.read(length, 0, 4);
             		int fileLength = byteArrayToInt(length);
-            		byte[] fileExtention = new byte[6];
-            		inputstream.read(fileExtention, 0, 6);
-            		String filetype = new String(fileExtention);
+            		byte[] fileExtension = new byte[3];
+            		inputstream.read(fileExtension, 0, 3);
+            		String filetype = new String(fileExtension);
             		File file = createFile(filetype);
             		Uri uri = Uri.fromFile(file);
             		songByteArray = new byte[fileLength];
@@ -162,7 +184,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		fileoutputstream.close();
             		
             		musicPlayerService.initializeSongAndPause(uri);
-            		songUri = musicPlayerService.getCurrectSongUri();
+            		songUri = musicPlayerService.getCurrentTrackUri();
             		
             		broadcastStopPlayback();
             		broadcastSong();   
@@ -173,18 +195,21 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType == PAUSE) {
+            		Log.d("server log", "client paused");
             		musicPlayerService.pause();
             		
             		broadcastPause();
             	}
             	
             	else if (packetType == PLAY) {
+            		Log.d("server log", "client played");
             		musicPlayerService.play();
             		
             		broadcastPlay();
             	}
             	
             	else if (packetType == SEEK_TO) {
+            		Log.d("server log", "client changes seek pos");
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];
             		inputstream.read(millisecondsArray, 0, 4);
@@ -197,10 +222,10 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType == STOP_PLAYBACK) {
+            		Log.d("server log", "client stopped playback");
             		musicPlayerService.stopPlayback();
             	}
-            	
-            	serverSocket.close();
+
         }
         } catch (Exception e) {
         }
@@ -255,7 +280,6 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     	}
     	
     	sendToClients(packet);
-    	//sendToClients(songByteArray);
     }
     
     private File createFile(String FileType){
@@ -276,6 +300,16 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 		return f;
     }
     
+    @Override
+    protected void onPreExecute() {
+    	Toast.makeText(context, "Server Started", Toast.LENGTH_SHORT).show();
+    }
+    
+    @Override
+    protected void onPostExecute(Void result) {
+    	Toast.makeText(context, "Server Stopped", Toast.LENGTH_SHORT).show();
+    }
+    
     private void sendToClients(byte[] packet) {
     	OutputStream outputStream;
     	
@@ -289,23 +323,18 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 		}
     }
     
-    private void recursivelySetIPAddress(WifiP2pManager mManager,Channel channel){
-		mManager.requestConnectionInfo(channel, new WifiP2pManager.ConnectionInfoListener(){
-
-			@Override
-			public void onConnectionInfoAvailable(WifiP2pInfo info) {
-				if(info.groupOwnerAddress==null)
-				{
-					recursivelySetIPAddress(manager,mChannel);
-				}
-				else
-				{
-				IPaddress = info.groupOwnerAddress.getHostAddress();
-//				Toast.makeText(context, IPaddress, Toast.LENGTH_SHORT).show();
-				doInBackground();
-				}
-			}
-		});
-	}
+    private final synchronized String getPath(Uri uri) {
+        String res = null;
+        String[] proj = { MediaStore.Images.Media.DATA };
+        Cursor cursor = musicPlayerService.getContentResolver().query(uri, proj,
+                null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor
+                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            res = cursor.getString(column_index);
+        }
+        cursor.close();
+        return res;
+    }
     
 }

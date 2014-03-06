@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Calendar;
@@ -14,6 +13,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.Toast;
 
 public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -73,25 +73,19 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... params) {
         try {
-        	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
+//        	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
         	
             byte[] messageType = new byte[1];
             
             Socket socket = new Socket();
-            Toast.makeText(context, "HERE1", Toast.LENGTH_SHORT).show();
             socket.bind(null);
-            Toast.makeText(context, "HERE2", Toast.LENGTH_SHORT).show();
-            Toast.makeText(context, server,Toast.LENGTH_SHORT).show();
-            socket.connect(new InetSocketAddress(InetAddress.getByName(server), 8888));
-            Toast.makeText(context, "HERE3", Toast.LENGTH_SHORT).show();
+            socket.connect(new InetSocketAddress(server, 8888));
+            Log.d("client log", "connected to server");
             InputStream inputstream = socket.getInputStream();
-            Toast.makeText(context, "HERE4", Toast.LENGTH_SHORT).show();
             outputStream = socket.getOutputStream();
-            Toast.makeText(context, "HERE5", Toast.LENGTH_SHORT).show();
             
             messageType[0]=Integer.valueOf(CONNECT).byteValue();
             outputStream.write(messageType);
-            Toast.makeText(context, "Sent CONNECT", Toast.LENGTH_SHORT).show();
             
             while (true) {
             	
@@ -102,19 +96,27 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		uuid = inputstream.read();
             		messageType[0]=Integer.valueOf(FILE_REQUEST).byteValue();
             		outputStream.write(messageType);
-            		Toast.makeText(context, "Received a WELCOME packet.", Toast.LENGTH_SHORT).show();
             	}
             	
             	else if (packetType == FILE_REQUEST) {
-            		byte[] packet = new byte[songByteLength+1];
+            		songUri = musicPlayerService.getCurrentTrackUri();
+            		byte[] packet = new byte[songByteLength+8];
                 	packet[0] = Integer.valueOf(FILE).byteValue();
                 	
-                	for (int i=1; i<songByteLength+1; i++) {
-                		packet[i] = songByteArray[i-1];
+                	byte[] length = intToByteArray(songByteLength);
+                	byte[] fileExtension = songUri.toString().substring(songUri.toString().length()-3).getBytes();
+                	
+                	for (int i=1; i<5; i++) {
+                		packet[i] = length[i-1];
                 	}
+                	for (int i=5; i<8; i++) {
+                		packet[i] = fileExtension[i-5];
+                	}
+                	for (int i=8; i<songByteLength+8; i++) {
+                		packet[i] = songByteArray[i-8];
+                	}
+                	
                 	outputStream.write(packet);
-
-//            		Toast.makeText(musicPlayerService, "Received a WELCOME packet.", Toast.LENGTH_SHORT).show();
 
             	}
             	
@@ -123,24 +125,34 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		byte[] length = new byte[4];
             		inputstream.read(length, 0, 4);
             		int fileLength = byteArrayToInt(length);
-            		byte[] fileExtention = new byte[6];
-            		inputstream.read(fileExtention, 0, 6);
-            		String filetype = new String(fileExtention);
+            		byte[] fileExtension = new byte[3];
+            		inputstream.read(fileExtension, 0, 3);
+
+            		
+            		
+            		String filetype = new String(fileExtension);
+            		
+            		
             		File file = createFile(filetype);
             		Uri uri = Uri.fromFile(file);
+ 
             		songByteArray = new byte[fileLength];
             		songByteLength = fileLength;
+            		
             		inputstream.read(songByteArray, 0, fileLength);
+            		
             		FileOutputStream fileoutputstream = new FileOutputStream(file);
+
             		fileoutputstream.write(songByteArray);
             		fileoutputstream.close();
             		
             		musicPlayerService.initializeSongAndPause(uri);
-            		songUri = musicPlayerService.getCurrectSongUri();   
+            		songUri = musicPlayerService.getCurrentTrackUri();   
             		
             		// request playback location of file
             		messageType[0] = Integer.valueOf(REQUEST_SEEK_TO).byteValue();
             		outputStream.write(messageType);
+            		Log.d("client log", "here9");
             	}
             	
             	else if (packetType == PAUSE) {
@@ -208,11 +220,21 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 		}
     }
     
+    @Override
+    protected void onPreExecute() {
+    	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
+    }
+    
+    @Override
+    protected void onPostExecute(Void result) {
+    	Toast.makeText(context, "Client Stopped", Toast.LENGTH_SHORT).show();
+    }
+    
     private File createFile(String FileType){
     	String date = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
 
     	final File f = new File(Environment.getExternalStorageDirectory() + "/"
-				+ context.getPackageName() + "/Shared Songs/Song-" + date + "."
+				+ "Amp" + "/Shared Songs/Song-" + date + "."
 				+ FileType);
 
 		File dirs = new File(f.getParent());
@@ -221,6 +243,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 		try {
 			f.createNewFile();
 		} catch (IOException e) {
+			Log.d("client log", "did not create new file");
 			e.printStackTrace();
 		}
 		return f;

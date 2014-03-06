@@ -107,7 +107,7 @@ public class AudioService extends Service {
 		}
 	}
 	
-	Uri getCurrectSongUri() {
+	Uri getCurrentTrackUri() {
 		return currentSongUri;
 	}
 

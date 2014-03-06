@@ -26,6 +26,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -108,10 +109,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        		musicPlayerService.pause();
 		        		
 		        		if (masterMode && server != null) {
-		        			server.broadcastPause();
+//		        			server.broadcastPause();
 		        		}
 		        		else if (!masterMode && client != null) {
-		        			client.sendPause();
+//		        			client.sendPause();
 		        		}
 		        	}
 		        } else {
@@ -120,10 +121,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        	musicPlayerService.play();
 		        	
 		        	if (masterMode && server != null) {
-	        			server.broadcastPlay();
+//	        			server.broadcastPlay();
 	        		}
 		        	else if (!masterMode && client != null) {
-	        			client.sendPlay();
+//	        			client.sendPlay();
 	        		}
 		        }
 		    }
@@ -188,7 +189,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		    				Toast.makeText(getApplicationContext(), "Nearby device(s) found", Toast.LENGTH_SHORT).show();
 		    			}
 		    			else {
-		    				Toast.makeText(getApplicationContext(), "No nearby devices found", Toast.LENGTH_SHORT).show();
+//		    				Toast.makeText(getApplicationContext(), "No nearby devices found", Toast.LENGTH_SHORT).show();
 		    			}
 		    		}
 		    	});
@@ -206,7 +207,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     			public void onSuccess(){
     				connected = true;
     				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
-					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService,mManager,mChannel);
+					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService);
+					server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     			}
     			
     			@Override
@@ -600,6 +602,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         						connected = true;
         						invalidateOptionsMenu();
         						recursivelyInitializeServerConnection(mManager);
+        						
+        						if (viewSwitcher.getDisplayedChild() == 1) {
+        							viewSwitcher.setDisplayedChild(0);
+        						}
         					}	
         						
     	
@@ -662,7 +668,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 				}
 				else {
 					client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress());
-					client.doInBackground();
+					client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 					servconnection = true;	
 //					Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
 				}
