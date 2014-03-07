@@ -314,11 +314,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 
 	    			@Override
 	    			public void onSuccess() {
+	    				
 	    				if (client != null) {
 	    					client.cancelTask();
-	    				}
-	    				if (server != null) {
-	    					server.cancelTask();
 	    				}
 	    				
 	    				connected = false;
