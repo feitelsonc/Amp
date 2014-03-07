@@ -30,7 +30,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -109,10 +108,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        		musicPlayerService.pause();
 		        		
 		        		if (masterMode && server != null) {
-//		        			server.broadcastPause();
+		        			server.broadcastPause();
 		        		}
 		        		else if (!masterMode && client != null) {
-//		        			client.sendPause();
+		        			client.sendPause();
 		        		}
 		        	}
 		        } else {
@@ -121,10 +120,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        	musicPlayerService.play();
 		        	
 		        	if (masterMode && server != null) {
-//	        			server.broadcastPlay();
+	        			server.broadcastPlay();
 	        		}
 		        	else if (!masterMode && client != null) {
-//	        			client.sendPlay();
+	        			client.sendPlay();
 	        		}
 		        }
 		    }
@@ -315,6 +314,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 
 	    			@Override
 	    			public void onSuccess() {
+	    				if (client != null) {
+	    					client.cancelTask();
+	    				}
+	    				if (server != null) {
+	    					server.cancelTask();
+	    				}
+	    				
 	    				connected = false;
 	    				Toast.makeText(getApplicationContext(), "Exited Group", Toast.LENGTH_SHORT).show();
 	    				groupAddressView.setVisibility(View.GONE);
@@ -346,6 +352,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    	selectedSongUri = data.getData(); 
 	    	selectedSongUriString = selectedSongUri.toString();
 	    	musicPlayerService.initializeSong(selectedSongUri);
+	    	
+	    	if (masterMode && server != null) {
+    			server.broadcastSong();
+    		}
+    		else if (!masterMode && client != null) {
+    			client.sendSong();
+    		}
 	    	
 	    	setupWidgets(selectedSongUriString);
 	    }
@@ -656,6 +669,14 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			stopService(new Intent(this, AudioService.class));
 			unbindToMusicPlayerService();
 		}
+		
+		if (client != null) {
+			client.cancelTask();
+		}
+		
+		if (server != null) {
+			server.cancelTask();
+		}
 	}
 	
 	public void recursivelyInitializeServerConnection(WifiP2pManager manager){
@@ -663,7 +684,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 
 			@Override
 			public void onConnectionInfoAvailable(WifiP2pInfo info) {
-				if(info.groupOwnerAddress==null) {
+				if (info.groupOwnerAddress == null) {
 					recursivelyInitializeServerConnection(mManager);
 				}
 				else {

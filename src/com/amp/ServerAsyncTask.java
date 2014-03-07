@@ -42,11 +42,16 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private Uri songUri;
     private byte[] songByteArray;
     private int songByteLength;
+    private boolean isTaskCancelled = false;
     
     public ServerAsyncTask(Context context, AudioService musicPlayerService) {
         this.context = context;
         this.musicPlayerService = musicPlayerService;
         this.songUri = musicPlayerService.getCurrentTrackUri();
+    }
+    
+    public void cancelTask() {
+        isTaskCancelled = true;
     }
     
     public static int byteArrayToInt(byte[] b) {
@@ -69,23 +74,11 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... params) {
         try {
         	
-//        	FileInputStream fileinputstream;
-//        	try {
-//        		File songfile = new File(songUri.getPath());
-//        		fileinputstream = new FileInputStream(songfile);
-//        		songByteLength = (int) songfile.length();
-//        		songByteArray = new byte[songByteLength];
-//        		fileinputstream.read(songByteArray, 0, songByteLength);
-//        		fileinputstream.close();
-//        	} catch (Exception e) {  
-//        		e.printStackTrace();  
-//        	}
-        	
             byte[] messageType = new byte[1];
             byte[] clientUuid = new byte[1];
             
         	ServerSocket serverSocket = new ServerSocket(8888);
-        	Log.d("server log", "before client connects");
+        	Log.d("server log", "waiting for client to connect");
         	Socket client = serverSocket.accept();
 
         	Log.d("server log", "client connected");
@@ -93,8 +86,16 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         	OutputStream outputStream = client.getOutputStream();
             
             while (true) {
-
             	
+            	if (isTaskCancelled) {
+            		broadcastStopPlayback();
+            		for (int i=0; i<numClients; i++) {
+            			dictionary.get(Integer.valueOf(i)).close();
+            			
+            		}
+                    return null;
+                }
+
             	// Reads the first byte of the packet to determine packet type
             	int packetType = inputstream.read();
             	
@@ -112,11 +113,11 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	else if (packetType == DISCONNECT) {
             		int uuidToRemove = inputstream.read();
             		dictionary.remove(Integer.valueOf(uuidToRemove).toString());
-            		Log.d("server log", "client disconnected");
+            		Log.d("server log", "received disconnect packet from client");
             	}
             	
             	else if (packetType == FILE_REQUEST) {
-            		Log.d("server log", "client requested song");
+            		Log.d("server log", "received file requested packet from client");
             		
             		// get current track file from musicPlayerService
             		songUri = musicPlayerService.getCurrentTrackUri();
@@ -124,13 +125,13 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		FileInputStream songFileinputstream;
                 	try {
                 		File songfile = new File(getPath(songUri));
-                		Log.d("server log", "this is the File songfile.toUri() "+songfile.toURI());
-                		Log.d("server log", "this is the File songfile.exists() "+Boolean.valueOf(songfile.exists()).toString());
-                		Log.d("server log", "this is the File songfile.getName() "+songfile.getName());
-                		Log.d("server log", "this is the entire uri path "+getPath(songUri));
+//                		Log.d("server log", "this is the File songfile.toUri() "+songfile.toURI());
+//                		Log.d("server log", "this is the File songfile.exists() "+Boolean.valueOf(songfile.exists()).toString());
+//                		Log.d("server log", "this is the File songfile.getName() "+songfile.getName());
+//                		Log.d("server log", "this is the entire uri path "+getPath(songUri));
                 		songFileinputstream = new FileInputStream(songfile);
                 		songByteLength = (int) songfile.length();
-                		Log.d("server log", "this is the file's length "+Integer.valueOf((int)songfile.length()).toString());
+//                		Log.d("server log", "this is the file's length "+Integer.valueOf((int)songfile.length()).toString());
                 		songByteArray = new byte[songByteLength];
                 		songFileinputstream.read(songByteArray, 0, songByteLength);
                 		songFileinputstream.close();
@@ -146,22 +147,26 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 //                	Log.d("server log", "this is the entire file name"+songUri.getPath());
 //                	Log.d("server log", "this is the file extension, before byte array conversion."+songUri.toString().substring(songUri.getPath().length()-3));
 //                	Log.d("server log", "this is the file extension, after byte array conversion, and then conversion back to string."+new String(fileExtension));
-                	byte[] fileExtension = "mp3".getBytes();
-                	for (int i=1; i<5; i++) {
-                		packet[i] = length[i-1];
-                	}
+                	String tempExten = "mp3";
+                	byte[] fileExtension = tempExten.getBytes();
+//                	for (int i=1; i<5; i++) {
+//                		packet[i] = length[i-1];
+//                	}
+                	outputStream.write(length);
 
                 	Log.d("server log", "this is the songbyte length"+Integer.valueOf(songByteLength));
                 	
-                	for (int i=5; i<8; i++) {
-                		packet[i] = fileExtension[i-5];
-                	}
+//                	for (int i=5; i<8; i++) {
+//                		packet[i] = fileExtension[i-5];
+//                	}
+                	outputStream.write(fileExtension);
 
-                	for (int i=8; i<songByteLength+8; i++) {
-                		packet[i] = songByteArray[i-8];
-                	}
+//                	for (int i=8; i<songByteLength+8; i++) {
+//                		packet[i] = songByteArray[i-8];
+//                	}
+                	outputStream.write(songByteArray);
                 	
-                	outputStream.write(packet);
+//                	outputStream.write(packet);
                 	Log.d("server log", "packet away. weeeeeee");
             	}
 
@@ -233,18 +238,21 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void broadcastPause() {
+    	Log.d("server log", "broadcasted pause");
     	byte[] messageType = new byte[1];
     	messageType[0] = Integer.valueOf(PAUSE).byteValue();
     	sendToClients(messageType);
     }
     
     public void broadcastPlay() {
+    	Log.d("server log", "broadcasted play");
     	byte[] messageType = new byte[1];
     	messageType[0] = Integer.valueOf(PLAY).byteValue();
     	sendToClients(messageType);
     }
     
     public void broadcastSeekTo() {
+    	Log.d("server log", "broadcasted seek to");
     	byte[] packet = new byte[5];
     	packet[0] = Integer.valueOf(SEEK_TO).byteValue();
     	byte[] millisecondsArray = new byte[4];
@@ -257,36 +265,53 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void broadcastStopPlayback() {
+    	Log.d("server log", "broadcasted stop");
     	byte[] messageType = new byte[1];
     	messageType[0] = Integer.valueOf(STOP_PLAYBACK).byteValue();
     	sendToClients(messageType);
     }
     
     public void broadcastSong() {
-    	byte[] packet = new byte[songByteLength+11];
+    	Log.d("server log", "broadcasted song");
+    	// get current track file from musicPlayerService
+		songUri = musicPlayerService.getCurrentTrackUri();
+		
+		FileInputStream songFileinputstream;
+    	try {
+    		File songfile = new File(getPath(songUri));
+    		songFileinputstream = new FileInputStream(songfile);
+    		songByteLength = (int) songfile.length();
+    		songByteArray = new byte[songByteLength];
+    		songFileinputstream.read(songByteArray, 0, songByteLength);
+    		songFileinputstream.close();
+    	} catch (Exception e) {  
+    		e.printStackTrace();  
+    	}
+		
+    	byte[] packet = new byte[songByteLength+8];
     	packet[0] = Integer.valueOf(FILE).byteValue();
-    	
     	byte[] length = intToByteArray(songByteLength);
-    	byte[] fileExtention = songUri.toString().substring(songUri.toString().length()-3).getBytes();
+    	String tempExten = "mp3";
+    	byte[] fileExtension = tempExten.getBytes();
     	
     	for (int i=1; i<5; i++) {
     		packet[i] = length[i-1];
     	}
-    	for (int i=5; i<11; i++) {
-    		packet[i] = fileExtention[i-5];
+    	for (int i=5; i<8; i++) {
+    		packet[i] = fileExtension[i-5];
     	}
-    	for (int i=11; i<songByteLength+11; i++) {
-    		packet[i] = songByteArray[i-11];
+    	for (int i=8; i<songByteLength+8; i++) {
+    		packet[i] = songByteArray[i-8];
     	}
-    	
     	sendToClients(packet);
+
     }
     
     private File createFile(String FileType){
     	String date = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
 
     	final File f = new File(Environment.getExternalStorageDirectory() + "/"
-				+ context.getPackageName() + "/Shared Songs/Song-" + date + "."
+				+ "Amp" + "/Shared Songs/Song-" + date + "."
 				+ FileType);
 
 		File dirs = new File(f.getParent());
@@ -325,12 +350,10 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     
     private final synchronized String getPath(Uri uri) {
         String res = null;
-        String[] proj = { MediaStore.Images.Media.DATA };
-        Cursor cursor = musicPlayerService.getContentResolver().query(uri, proj,
-                null, null, null);
+        String[] proj = { MediaStore.Audio.Media.DATA };
+        Cursor cursor = musicPlayerService.getContentResolver().query(uri, proj, null, null, null);
         if (cursor.moveToFirst()) {
-            int column_index = cursor
-                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            int column_index = cursor .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
             res = cursor.getString(column_index);
         }
         cursor.close();

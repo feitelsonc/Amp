@@ -39,6 +39,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     private Uri songUri;
     private byte[] songByteArray;
     private int songByteLength;
+    private boolean isTaskCancelled = false;
 
     public ClientAsyncTask(Context context, AudioService musicPlayerService) {
         this.context = context;
@@ -51,17 +52,19 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
         this.server = host;
     }
     
+    public void cancelTask() {
+        isTaskCancelled = true;
+    }
+    
 
-    public static int byteArrayToInt(byte[] b) 
-    {
+    public static int byteArrayToInt(byte[] b) {
         return b[3] & 0xFF |
                (b[2] & 0xFF) << 8 |
                (b[1] & 0xFF) << 16 |
                (b[0] & 0xFF) << 24;
     }
 
-    public static byte[] intToByteArray(int a)
-    {
+    public static byte[] intToByteArray(int a) {
         return new byte[] {
             (byte) ((a >> 24) & 0xFF),
             (byte) ((a >> 16) & 0xFF),   
@@ -73,6 +76,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     @Override
     protected Void doInBackground(Void... params) {
         try {
+        	
 //        	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
         	
             byte[] messageType = new byte[1];
@@ -88,6 +92,14 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             outputStream.write(messageType);
             
             while (true) {
+            	
+            	if (isTaskCancelled){
+            		messageType[0]=Integer.valueOf(DISCONNECT).byteValue();
+            		outputStream.write(messageType);
+            		outputStream.write(Integer.valueOf(uuid).byteValue());
+            		socket.close();
+                    return null;
+                }
             	
             	// Reads the first byte of the packet to determine packet type
             	int packetType = inputstream.read();
@@ -213,6 +225,31 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	for (int i=1; i<5; i++) {
     		packet[i] = millisecondsArray[i-1];
     	}
+    	try {
+			outputStream.write(packet);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    public void sendSong() {
+    	Log.d("client log", "sent song");
+    	byte[] packet = new byte[songByteLength+11];
+    	packet[0] = Integer.valueOf(FILE).byteValue();
+    	
+    	byte[] length = intToByteArray(songByteLength);
+    	byte[] fileExtention = songUri.toString().substring(songUri.toString().length()-3).getBytes();
+    	
+    	for (int i=1; i<5; i++) {
+    		packet[i] = length[i-1];
+    	}
+    	for (int i=5; i<11; i++) {
+    		packet[i] = fileExtention[i-5];
+    	}
+    	for (int i=11; i<songByteLength+11; i++) {
+    		packet[i] = songByteArray[i-11];
+    	}
+    	
     	try {
 			outputStream.write(packet);
 		} catch (IOException e) {
