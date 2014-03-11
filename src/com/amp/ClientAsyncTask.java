@@ -34,22 +34,18 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     OutputStream outputStream;
     
 	private AudioService musicPlayerService = null;
-	
+	private MainActivity activity;
     private Context context;
     private Uri songUri;
     private byte[] songByteArray;
     private int songByteLength;
     private boolean isTaskCancelled = false;
-
-    public ClientAsyncTask(Context context, AudioService musicPlayerService) {
-        this.context = context;
-        this.musicPlayerService = musicPlayerService;
-    }
     
-    public ClientAsyncTask(Context context, AudioService musicPlayerService, String host) {
+    public ClientAsyncTask(Context context, AudioService musicPlayerService, String host, MainActivity activity) {
         this.context = context;
         this.musicPlayerService = musicPlayerService;
         this.server = host;
+        this.activity = activity;
     }
     
     public void cancelTask() {
@@ -159,7 +155,10 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		fileoutputstream.close();
             		
             		musicPlayerService.initializeSongAndPause(uri);
-            		songUri = musicPlayerService.getCurrentTrackUri();   
+            		songUri = musicPlayerService.getCurrentTrackUri();
+            		
+            		// update activity UI
+            		activity.setupWidgets(songUri.toString());
             		
             		// request playback location of file
             		messageType[0] = Integer.valueOf(REQUEST_SEEK_TO).byteValue();

@@ -206,7 +206,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     			public void onSuccess(){
     				connected = true;
     				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
-					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService);
+					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService, MainActivity.this);
 					server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     			}
     			
@@ -364,7 +364,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	  super.onActivityResult(requestCode, resultCode, data);
 	}
 	
-	private void setupWidgets(String songUriString) {
+	public void setupWidgets(String songUriString) {
 		if (songUriString != null && !songUriString.equals("")) {
 			selectedSongUri = Uri.parse(songUriString);
 			
@@ -581,6 +581,14 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         dialog.show(getFragmentManager(), "ConnectDialog");
     }
 	
+	public void toastClientConnected() {
+		Toast.makeText(getApplicationContext(), "Client connected",Toast.LENGTH_SHORT).show();
+	}
+	
+	public void toastClientDisconnected() {
+		Toast.makeText(getApplicationContext(), "Client disconnected",Toast.LENGTH_SHORT).show();
+	}
+	
 	@Override
 	public void onReturnValue(final String MACAddress) {
 		
@@ -686,7 +694,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 					recursivelyInitializeServerConnection(mManager);
 				}
 				else {
-					client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress());
+					client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress(), MainActivity.this);
 					client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 					servconnection = true;	
 //					Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();

@@ -17,6 +17,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
@@ -35,6 +36,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private static final int REQUEST_SEEK_TO = 9;
 
 	private AudioService musicPlayerService = null;
+	private MainActivity activity;
 	private int numClients = 0;
 	static Map<String, Socket> dictionary = new HashMap<String, Socket>(); // maps uuids to sockets of clients
 	
@@ -43,11 +45,14 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private byte[] songByteArray;
     private int songByteLength;
     private boolean isTaskCancelled = false;
+    private Handler handler = new Handler();
+    private ServerSocket serverSocket;
     
-    public ServerAsyncTask(Context context, AudioService musicPlayerService) {
+    public ServerAsyncTask(Context context, AudioService musicPlayerService, MainActivity activity) {
         this.context = context;
         this.musicPlayerService = musicPlayerService;
         this.songUri = musicPlayerService.getCurrentTrackUri();
+        this.activity = activity;
     }
     
     public void cancelTask() {
@@ -77,9 +82,10 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             byte[] messageType = new byte[1];
             byte[] clientUuid = new byte[1];
             
-        	ServerSocket serverSocket = new ServerSocket(8888);
+        	serverSocket = new ServerSocket(8888);
         	Log.d("server log", "waiting for client to connect");
         	Socket client = serverSocket.accept();
+        	activity.toastClientConnected();
 
         	Log.d("server log", "client connected");
         	InputStream inputstream = client.getInputStream();
@@ -111,6 +117,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType == DISCONNECT) {
+            		activity.toastClientDisconnected();
             		int uuidToRemove = inputstream.read();
             		dictionary.remove(Integer.valueOf(uuidToRemove).toString());
             		Log.d("server log", "received disconnect packet from client");
@@ -188,6 +195,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		
             		musicPlayerService.initializeSongAndPause(uri);
             		songUri = musicPlayerService.getCurrentTrackUri();
+            		// update activity UI
+            		activity.setupWidgets(songUri.toString());
             		
             		broadcastStopPlayback();
             		broadcastSong();   
@@ -357,5 +366,73 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         cursor.close();
         return res;
     }
+    
+    private class ClientAccepter extends Thread {
+    	ClientAcceptRunnable runnable = null;
+    	
+    	public ClientAccepter() {
+    		this(new ClientAcceptRunnable());
+     	}
+    	
+    	private ClientAccepter(ClientAcceptRunnable runnable) {
+    		super(runnable, "client_acceptor");
+    		this.runnable = runnable;
+    	}
+    	
+    	public void stopAccepter() {
+    		runnable.stopAcceptor();
+    	}
+    }
+    
+    private class ClientAcceptRunnable implements Runnable {
+	   	private final int TICKER_TIME = 250;
+    	
+    	private boolean canceled = false; 
+ 
+    	@Override
+    	public void run() {
+     		
+     		while(!canceled) {
+	    		try {
+	    			Thread.sleep(TICKER_TIME);
+	    		} catch (Exception e) {
+	    			return;
+	    		}
+	
+	    		handler.post(new Runnable() {
+	    			
+	    			@Override
+	    			public void run() {
+	    				try {
+	    					Socket client = serverSocket.accept();
+	    					activity.toastClientConnected();
+		    				InputStream inputstream = client.getInputStream();
+		    	        	OutputStream outputStream = client.getOutputStream();
+		    	        	
+//		    	        	int packetType = inputstream.read();
+//		                	
+//		                	if (packetType == CONNECT) {
+//		                		Log.d("server log", "received connect packet from client");
+//		                		messageType[0] = Integer.valueOf(WELCOME).byteValue();
+//		                		clientUuid[0] = Integer.valueOf(numClients).byteValue();
+//		                		outputStream.write(messageType);
+//		                		outputStream.write(clientUuid);
+//		                		dictionary.put(Integer.valueOf(numClients).toString(), client);
+//		                		
+//		                		numClients++;
+//		                	}
+	    				} catch (Exception e) {
+	    					
+	    				}
+	    				
+	    			}
+	    		});
+     		}
+    	}
+    	
+    	public void stopAcceptor() {
+    		canceled = true;
+    	}
+	}
     
 }
