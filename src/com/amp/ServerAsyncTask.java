@@ -87,8 +87,9 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         	
         	clientAcceptor = new ClientAccepter();
         	clientAcceptor.start();
-        	
+        	Log.d("server log", "clientAcceptor has been started");
         	 while (true) {
+        		 
         		 
 //        	Log.d("server log", "waiting for client to connect");
 //        	Socket client = serverSocket.accept();
@@ -97,13 +98,14 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         	for (int i=0; i<numClients; i++) {
         		Socket client = dictionary.get(Integer.valueOf(i).toString());
         		inputstream = new DataInputStream(client.getInputStream());
-	        	
 	        	if (inputstream.available() == 0) {
 	        		continue;
+	        		
 	        	}
 	        	else
 	        	{
-	        	outputStream = client.getOutputStream();
+	        		Log.d("server log", "received valid input from client, in client iterator, client i #: "+Integer.valueOf(i).toString());
+	        		outputStream = client.getOutputStream();
 	        	}
 //        	activity.toastClientConnected();
 
@@ -117,8 +119,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		Log.d("server log", "isTaskCancelled is true");
             		broadcastStopPlayback();
             		for (int i2=0; i2<numClients; i2++) {
-            			dictionary.get(Integer.valueOf(i2)).close();
-            			
+            			dictionary.get(Integer.valueOf(i2)).close();          			
             		}
                     return null;
                 }
@@ -427,21 +428,23 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	    			return;
 	    		}
 	
-	    		handler.post(new Runnable() {
+	    		new Runnable() {
 	    			
 	    			@Override
 	    			public void run() {
 	    				try {
+	    					Log.d("server log", "waiting for clients to connect");
 	    					Socket client = serverSocket.accept();
 	    					Log.d("server log", "client connected");
 	    					dictionary.put(Integer.valueOf(numClients).toString(), client);
+	
 	    					numClients++;
 	    				} catch (Exception e) {
-	    					
+	    					Log.d("server log","This is an error of type: "+e.toString());
 	    				}
 	    				
 	    			}
-	    		});
+	    		};
      		}
     	}
     	
