@@ -81,7 +81,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             socket.bind(null);
             socket.connect(new InetSocketAddress(server, 8888));
             Log.d("client log", "connected to server");
-            activity.toastConnectedToServer();
+//            activity.toastConnectedToServer();
             InputStream inputstream = socket.getInputStream();
             outputStream = socket.getOutputStream();
             
@@ -283,7 +283,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	String date = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
 
     	final File f = new File(Environment.getExternalStorageDirectory() + "/"
-				+ "Amp" + "/Shared Songs/Song-" + date + "."
+				+ activity.getPackageName() + "/Shared Songs/Song-" + date + "."
 				+ FileType);
 
 		File dirs = new File(f.getParent());
@@ -292,7 +292,8 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 		try {
 			f.createNewFile();
 		} catch (IOException e) {
-			Log.d("client log", "did not create new file");
+			Log.d("client log", e.toString());
+			Log.d("client log", "error creating new file");
 			e.printStackTrace();
 		}
 		return f;

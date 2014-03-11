@@ -85,7 +85,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         	serverSocket = new ServerSocket(8888);
         	Log.d("server log", "waiting for client to connect");
         	Socket client = serverSocket.accept();
-        	activity.toastClientConnected();
+//        	activity.toastClientConnected();
 
         	Log.d("server log", "client connected");
         	InputStream inputstream = client.getInputStream();
@@ -117,7 +117,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType == DISCONNECT) {
-            		activity.toastClientDisconnected();
+//            		activity.toastClientDisconnected();
             		int uuidToRemove = inputstream.read();
             		dictionary.remove(Integer.valueOf(uuidToRemove).toString());
             		Log.d("server log", "received disconnect packet from client");
@@ -405,7 +405,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	    			public void run() {
 	    				try {
 	    					Socket client = serverSocket.accept();
-	    					activity.toastClientConnected();
+//	    					activity.toastClientConnected();
 		    				InputStream inputstream = client.getInputStream();
 		    	        	OutputStream outputStream = client.getOutputStream();
 		    	        	
