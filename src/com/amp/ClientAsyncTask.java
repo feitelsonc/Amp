@@ -81,6 +81,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             socket.bind(null);
             socket.connect(new InetSocketAddress(server, 8888));
             Log.d("client log", "connected to server");
+            activity.toastConnectedToServer();
             InputStream inputstream = socket.getInputStream();
             outputStream = socket.getOutputStream();
             

@@ -582,11 +582,15 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     }
 	
 	public void toastClientConnected() {
-		Toast.makeText(getApplicationContext(), "Client connected",Toast.LENGTH_SHORT).show();
+		Toast.makeText(getApplicationContext(), "User joined group",Toast.LENGTH_SHORT).show();
 	}
 	
 	public void toastClientDisconnected() {
-		Toast.makeText(getApplicationContext(), "Client disconnected",Toast.LENGTH_SHORT).show();
+		Toast.makeText(getApplicationContext(), "User left group",Toast.LENGTH_SHORT).show();
+	}
+	
+	public void toastConnectedToServer() {
+		Toast.makeText(getApplicationContext(), "Joined group",Toast.LENGTH_SHORT).show();
 	}
 	
 	@Override
@@ -617,7 +621,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         				mManager.connect(mChannel, config, new ActionListener() {
         					@Override
         					public void onSuccess() {
-        						Toast.makeText(getApplicationContext(), "Connected to: " + config.deviceAddress,Toast.LENGTH_SHORT).show();
+//        						Toast.makeText(getApplicationContext(), "Connected to: " + config.deviceAddress,Toast.LENGTH_SHORT).show();
         						connected = true;
         						invalidateOptionsMenu();
         						recursivelyInitializeServerConnection(mManager);
