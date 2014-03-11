@@ -81,7 +81,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         try {
         	
             byte[] messageType = new byte[1];
-//            byte[] clientUuid = new byte[1];
+//          byte[] clientUuid = new byte[1];
             
         	serverSocket = new ServerSocket(8888);
         	
@@ -90,9 +90,6 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         	Log.d("server log", "clientAcceptor has been started");
         	 while (true) {
         		 
-        		 
-//        	Log.d("server log", "waiting for client to connect");
-//        	Socket client = serverSocket.accept();
         	DataInputStream inputstream;
         	OutputStream outputStream;
         	for (int i=0; i<numClients; i++) {
@@ -102,19 +99,11 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	        		continue;
 	        		
 	        	}
-	        	else
-	        	{
+	        	else {
 	        		Log.d("server log", "received valid input from client, in client iterator, client i #: "+Integer.valueOf(i).toString());
 	        		outputStream = client.getOutputStream();
 	        	}
-//        	activity.toastClientConnected();
-
-//        	Log.d("server log", "client connected");
-//        	DataInputStream inputstream = new DataInputStream(client.getInputStream());
-//        	OutputStream outputStream = client.getOutputStream();
-            
-           
-            	
+	        	
             	if (isTaskCancelled) {
             		Log.d("server log", "isTaskCancelled is true");
             		broadcastStopPlayback();
@@ -134,16 +123,12 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 //            	    clientUuid[0] = Integer.valueOf(numClients).byteValue();
             		outputStream.write(messageType);
 //            		outputStream.write(clientUuid);
-//            		dictionary.put(Integer.valueOf(numClients).toString(), client);
-            		Log.d("server log", "This is the dictionary.toString()"+dictionary.toString());
-            		
-//            		numClients++;
             	}
             	
             	else if (packetType[0] == DISCONNECT) {
 //            		activity.toastClientDisconnected();
-            		/*int uuidToRemove = inputstream.readFully();
-            		dictionary.remove(Integer.valueOf(uuidToRemove).toString());*/
+//            		int uuidToRemove = inputstream.readFully();
+//            		dictionary.remove(Integer.valueOf(uuidToRemove).toString());
             		Log.d("server log", "received disconnect packet from client");
             	}
             	
@@ -435,6 +420,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	    				try {
 	    					Log.d("server log", "waiting for clients to connect");
 	    					Socket client = serverSocket.accept();
+//	    		        	activity.toastClientConnected();
 	    					Log.d("server log", "client connected");
 	    					dictionary.put(Integer.valueOf(numClients).toString(), client);
 	
