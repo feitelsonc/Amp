@@ -58,7 +58,7 @@ public class AudioService extends Service {
 			player.setDataSource(getApplicationContext(), currentSongUri);
 			player.prepare();
 			player.start();
-//			player.pause();
+			player.pause();
 		}
 		catch(Exception e) {
 			Log.d("client log", e.toString());

@@ -77,13 +77,14 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 //        	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
         	
             byte[] messageType = new byte[1];
+            byte[] packetType = new byte[1];
             
             Socket socket = new Socket();
             socket.bind(null);
             socket.connect(new InetSocketAddress(server, 8888));
             Log.d("client log", "connected to server");
 //            activity.toastConnectedToServer();
-            InputStream inputstream = socket.getInputStream();
+            DataInputStream inputstream = new DataInputStream(socket.getInputStream());
             outputStream = socket.getOutputStream();
             
             messageType[0]=CONNECT;
@@ -101,17 +102,17 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
                 }
             	
             	// Reads the first byte of the packet to determine packet type
-            	int packetType = inputstream.read();
+            	inputstream.readFully(packetType, 0, 1);
             	
-            	if (packetType == WELCOME){
+            	if (packetType[0] == WELCOME){
             		Log.d("client log", "received welcome message from server");
-            		uuid = inputstream.read();
+//            		uuid = inputstream.read();
             		messageType[0]=FILE_REQUEST;
             		outputStream.write(messageType);
             		Log.d("client log", "sent file request message to server");
             	}
             	
-            	else if (packetType == FILE_REQUEST) {
+            	else if (packetType[0] == FILE_REQUEST) {
             		Log.d("client log", "received file request message from server");
             		songUri = musicPlayerService.getCurrentTrackUri();
             		byte[] packet = new byte[songByteLength+8];
@@ -134,14 +135,14 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
                 	Log.d("client log", "sent file message to server");
             	}
             	
-            	else if (packetType == FILE) {
+            	else if (packetType[0] == FILE) {
             		Log.d("client log", "received file message from server");
             		byte[] length = new byte[4];
-            		inputstream.read(length, 0, 4);
+            		inputstream.readFully(length, 0, 4);
             		int fileLength = byteArrayToInt(length);
             		Log.d("client log", "length of file received: " + Integer.valueOf(fileLength).toString());
             		byte[] fileExtension = new byte[3];
-            		inputstream.read(fileExtension, 0, 3);
+            		inputstream.readFully(fileExtension, 0, 3);
             		
             		String filetype = new String(fileExtension);
             		Log.d("client log", "extention of file received: " + filetype);
@@ -155,17 +156,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		songByteLength = fileLength;
             		
             		// read file bytes from socket input stream
-//            		int packetSize = 100;
-//            		int remainder = songByteLength % packetSize;
-//            		for (int i=0; i<songByteLength-packetSize; i+=packetSize) {
-//            			inputstream.read(songByteArray, i, packetSize);
-//            		}
-//            		if (remainder > 0) {
-//            			inputstream.read(songByteArray, songByteLength-remainder-1, remainder);
-//            		}
-            		DataInputStream in = new DataInputStream(inputstream);
-            		in.readFully(songByteArray, 0, fileLength);
-//            		inputstream.read(songByteArray, 0, fileLength);
+            		inputstream.readFully(songByteArray, 0, fileLength);
             		Log.d("client log", "read file bytes from input stream");
             		
             		FileOutputStream fileoutputstream = new FileOutputStream(file);
@@ -187,27 +178,27 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		Log.d("client log", "sent request seek position message to server");
             	}
             	
-            	else if (packetType == PAUSE) {
+            	else if (packetType[0] == PAUSE) {
             		Log.d("client log", "received pause message from server");
             		musicPlayerService.pause();            		
             	}
             	
-            	else if (packetType == PLAY) {
+            	else if (packetType[0] == PLAY) {
             		Log.d("client log", "received play message from server");
             		musicPlayerService.play();
             	}
             	
-            	else if (packetType == SEEK_TO) {
+            	else if (packetType[0] == SEEK_TO) {
             		Log.d("client log", "received seek to message from server");
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];
-            		inputstream.read(millisecondsArray, 0, 4);
+            		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
             		musicPlayerService.seekTo(milliseconds);        		
             	}
             	
-            	else if (packetType == STOP_PLAYBACK) {
+            	else if (packetType[0] == STOP_PLAYBACK) {
             		Log.d("client log", "received stop playback message from server");
             		musicPlayerService.stopPlayback();
             	}
