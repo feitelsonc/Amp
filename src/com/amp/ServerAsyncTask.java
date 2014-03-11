@@ -115,6 +115,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		outputStream.write(messageType);
 //            		outputStream.write(clientUuid);
             		dictionary.put(Integer.valueOf(numClients).toString(), client);
+            		Log.d("server log", "This is the dictionary.toString()"+dictionary.toString());
             		
             		numClients++;
             	}
@@ -355,7 +356,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     	
 		for (int i=0; i<numClients; i++) {
 			try {
-				outputStream = dictionary.get(Integer.valueOf(i)).getOutputStream();
+				outputStream = dictionary.get(Integer.valueOf(i).toString()).getOutputStream();
 				outputStream.write(packet);
 			} catch (IOException e) {
 				e.printStackTrace();
