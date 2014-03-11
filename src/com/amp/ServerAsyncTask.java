@@ -111,9 +111,9 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	if (packetType[0] == CONNECT) {
             		Log.d("server log", "received connect packet from client");
             		messageType[0] = WELCOME;
-            	//  clientUuid[0] = Integer.valueOf(numClients).byteValue();
+//            	    clientUuid[0] = Integer.valueOf(numClients).byteValue();
             		outputStream.write(messageType);
-            //		outputStream.write(clientUuid);
+//            		outputStream.write(clientUuid);
             		dictionary.put(Integer.valueOf(numClients).toString(), client);
             		
             		numClients++;

@@ -96,7 +96,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	if (isTaskCancelled){
             		messageType[0]=DISCONNECT;
             		outputStream.write(messageType);
-            		outputStream.write(Integer.valueOf(uuid).byteValue());
+//            		outputStream.write(Integer.valueOf(uuid).byteValue());
             		socket.close();
                     return null;
                 }
