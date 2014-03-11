@@ -149,9 +149,16 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
                 		Log.d("server log", e.toString());
                 		e.printStackTrace();  
                 	}
-            		
+            		/*
                 	byte[] packet = new byte[songByteLength+8];
                 	packet[0] = FILE;
+                	byte[] length = intToByteArray(songByteLength);
+                	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
+                	*/
+                	
+                	//byte[] packet = new byte[songByteLength];
+                	byte type_packet = FILE;
+                	outputStream.write(type_packet);
                 	byte[] length = intToByteArray(songByteLength);
                 	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
 //                	
@@ -160,23 +167,44 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 //                	Log.d("server log", "this is the file extension, after byte array conversion, and then conversion back to string."+new String(fileExtension));
 //                	String tempExten = "mp3";
 //                	byte[] fileExtension = tempExten.getBytes();
-                	
+                	/*
                 	for (int i=1; i<5; i++) {
                 		packet[i] = length[i-1];
                 	}
-
+					*/
+                	outputStream.write(length,0,length.length);
+                	Log.d("server log", "length of length packet: "+Integer.valueOf(length.length));
                 	Log.d("server log", "songbyte length: "+Integer.valueOf(songByteLength));
-                	
+                	/*
                 	for (int i=5; i<8; i++) {
                 		packet[i] = fileExtension[i-5];
                 	}
-
+                	Log.d("server log", "between fileextension and songbytelength");
                 	for (int i=8; i<songByteLength+8; i++) {
                 		packet[i] = songByteArray[i-8];
                 	}
-                	
+                	Log.d("server log", Integer.valueOf(songByteArray.length).toString());
+                	Log.d("server log", "before writing packet to outputstream.");
                 	outputStream.write(packet);
                 	Log.d("server log", "sent file packet to client");
+                	*/
+                	outputStream.write(fileExtension,0,fileExtension.length);
+                	Log.d("server log","fileExtension.length:"+Integer.valueOf(fileExtension.length));
+                	Log.d("server log", "between fileextension and songbytelength");
+                	/*int packetsize = 10000;
+                	for(int i=0;i<songByteArray.length-packetsize;i=i+packetsize)
+                	{
+                		outputStream.write(songByteArray,i,packetsize);
+                	}
+                	int remainder = songByteArray.length%packetsize;
+                	Log.d("server log", Integer.valueOf(remainder).toString());
+                	outputStream.write(songByteArray,(songByteArray.length)-remainder-1,remainder);*/
+                	outputStream.write(songByteArray,0,songByteArray.length);
+                	Log.d("server log", Integer.valueOf(songByteArray.length).toString());
+                	Log.d("server log", "before writing packet to outputstream.");
+                	//outputStream.write(packet);
+                	Log.d("server log", "sent file packet to client");
+                	
             	}
 
             	else if (packetType == FILE) {
@@ -255,6 +283,11 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	else if (packetType == STOP_PLAYBACK) {
             		Log.d("server log", "client stopped playback");
             		musicPlayerService.stopPlayback();
+            	}
+            	
+            	else
+            	{
+            		Log.d("server log", "invalid packet type");
             	}
 
         }
