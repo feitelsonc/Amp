@@ -24,16 +24,16 @@ import android.widget.Toast;
 
 public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	
-	private static final int CONNECT = 0;
-    private static final int DISCONNECT = 1;
-    private static final int WELCOME = 2;
-    private static final int FILE_REQUEST = 3;
-    private static final int FILE = 4;
-    private static final int PAUSE = 5;
-    private static final int PLAY = 6;
-    private static final int SEEK_TO = 7;
-    private static final int STOP_PLAYBACK = 8;
-    private static final int REQUEST_SEEK_TO = 9;
+	private static final byte CONNECT = 0x00;
+    private static final byte DISCONNECT = 0x01;
+    private static final byte WELCOME = 0x02;
+    private static final byte FILE_REQUEST = 0x03;
+    private static final byte FILE = 0x04;
+    private static final byte PAUSE = 0x05;
+    private static final byte PLAY = 0x06;
+    private static final byte SEEK_TO = 0x07;
+    private static final byte STOP_PLAYBACK = 0x08;
+    private static final byte REQUEST_SEEK_TO = 0x09;
 
 	private AudioService musicPlayerService = null;
 	private MainActivity activity;
@@ -94,6 +94,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             while (true) {
             	
             	if (isTaskCancelled) {
+            		Log.d("server log", "isTaskCancelled is true");
             		broadcastStopPlayback();
             		for (int i=0; i<numClients; i++) {
             			dictionary.get(Integer.valueOf(i)).close();
@@ -107,7 +108,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	
             	if (packetType == CONNECT) {
             		Log.d("server log", "received connect packet from client");
-            		messageType[0] = Integer.valueOf(WELCOME).byteValue();
+            		messageType[0] = WELCOME;
             		clientUuid[0] = Integer.valueOf(numClients).byteValue();
             		outputStream.write(messageType);
             		outputStream.write(clientUuid);
@@ -150,7 +151,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
                 	}
             		
                 	byte[] packet = new byte[songByteLength+8];
-                	packet[0] = Integer.valueOf(FILE).byteValue();
+                	packet[0] = FILE;
                 	byte[] length = intToByteArray(songByteLength);
                 	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
 //                	
@@ -205,7 +206,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		broadcastSong();   
             		
             		// request playback location of file
-            		messageType[0] = Integer.valueOf(REQUEST_SEEK_TO).byteValue();
+            		messageType[0] = REQUEST_SEEK_TO;
             		outputStream.write(messageType);
             	}
             	
@@ -221,6 +222,21 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.play();
             		
             		broadcastPlay();
+            	}
+            	
+            	else if (packetType == REQUEST_SEEK_TO) {
+                	Log.d("server log", "client requested seek to");
+                	byte[] packet = new byte[5];
+                	packet[0] = SEEK_TO;
+                	byte[] millisecondsArray = new byte[4];
+                	int milliseconds = musicPlayerService.getCurrentPosition();
+                	millisecondsArray = intToByteArray(milliseconds);
+                	for (int i=1; i<5; i++) {
+                		packet[i] = millisecondsArray[i-1];
+                	}
+                	outputStream.write(packet);
+                	Log.d("server log", "sent seek to packet to client");
+                	
             	}
             	
             	else if (packetType == SEEK_TO) {
@@ -251,21 +267,21 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     public void broadcastPause() {
     	Log.d("server log", "broadcasted pause");
     	byte[] messageType = new byte[1];
-    	messageType[0] = Integer.valueOf(PAUSE).byteValue();
+    	messageType[0] = PAUSE;
     	sendToClients(messageType);
     }
     
     public void broadcastPlay() {
     	Log.d("server log", "broadcasted play");
     	byte[] messageType = new byte[1];
-    	messageType[0] = Integer.valueOf(PLAY).byteValue();
+    	messageType[0] = PLAY;
     	sendToClients(messageType);
     }
     
     public void broadcastSeekTo() {
     	Log.d("server log", "broadcasted seek to");
     	byte[] packet = new byte[5];
-    	packet[0] = Integer.valueOf(SEEK_TO).byteValue();
+    	packet[0] = SEEK_TO;
     	byte[] millisecondsArray = new byte[4];
     	int milliseconds = musicPlayerService.getCurrentPosition();
     	millisecondsArray = intToByteArray(milliseconds);
@@ -278,7 +294,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     public void broadcastStopPlayback() {
     	Log.d("server log", "broadcasted stop");
     	byte[] messageType = new byte[1];
-    	messageType[0] = Integer.valueOf(STOP_PLAYBACK).byteValue();
+    	messageType[0] = STOP_PLAYBACK;
     	sendToClients(messageType);
     }
     
@@ -300,7 +316,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     	}
 		
     	byte[] packet = new byte[songByteLength+8];
-    	packet[0] = Integer.valueOf(FILE).byteValue();
+    	packet[0] = FILE;
     	byte[] length = intToByteArray(songByteLength);
     	String tempExten = "mp3";
     	byte[] fileExtension = tempExten.getBytes();
