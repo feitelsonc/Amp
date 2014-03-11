@@ -87,6 +87,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             
             messageType[0]=Integer.valueOf(CONNECT).byteValue();
             outputStream.write(messageType);
+            Log.d("client log", "sent connect message to server");
             
             while (true) {
             	
@@ -102,12 +103,15 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	int packetType = inputstream.read();
             	
             	if (packetType == WELCOME){
+            		Log.d("client log", "received welcome message from server");
             		uuid = inputstream.read();
             		messageType[0]=Integer.valueOf(FILE_REQUEST).byteValue();
             		outputStream.write(messageType);
+            		Log.d("client log", "sent file request message to server");
             	}
             	
             	else if (packetType == FILE_REQUEST) {
+            		Log.d("client log", "received file request message from server");
             		songUri = musicPlayerService.getCurrentTrackUri();
             		byte[] packet = new byte[songByteLength+8];
                 	packet[0] = Integer.valueOf(FILE).byteValue();
@@ -126,11 +130,11 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
                 	}
                 	
                 	outputStream.write(packet);
-
+                	Log.d("client log", "sent file message to server");
             	}
             	
             	else if (packetType == FILE) {
-
+            		Log.d("client log", "received file message from server");
             		byte[] length = new byte[4];
             		inputstream.read(length, 0, 4);
             		int fileLength = byteArrayToInt(length);
@@ -164,18 +168,21 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		// request playback location of file
             		messageType[0] = Integer.valueOf(REQUEST_SEEK_TO).byteValue();
             		outputStream.write(messageType);
-            		Log.d("client log", "here9");
+            		Log.d("client log", "sent request seek posiition message to server");
             	}
             	
             	else if (packetType == PAUSE) {
+            		Log.d("client log", "received pause message from server");
             		musicPlayerService.pause();            		
             	}
             	
             	else if (packetType == PLAY) {
+            		Log.d("client log", "received play message from server");
             		musicPlayerService.play();
             	}
             	
             	else if (packetType == SEEK_TO) {
+            		Log.d("client log", "received seek to message from server");
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];
             		inputstream.read(millisecondsArray, 0, 4);
@@ -185,6 +192,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType == STOP_PLAYBACK) {
+            		Log.d("client log", "received stop playback message from server");
             		musicPlayerService.stopPlayback();
             	}
             	
@@ -201,6 +209,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	messageType[0] = Integer.valueOf(PAUSE).byteValue();
     	try {
 			outputStream.write(messageType);
+			Log.d("client log", "sent pause message to server");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -211,6 +220,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	messageType[0] = Integer.valueOf(PLAY).byteValue();
     	try {
 			outputStream.write(messageType);
+			Log.d("client log", "sent play message to server");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -227,6 +237,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	}
     	try {
 			outputStream.write(packet);
+			Log.d("client log", "sent seek to message to server");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -252,6 +263,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	
     	try {
 			outputStream.write(packet);
+			Log.d("client log", "sent file message to server");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
