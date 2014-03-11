@@ -18,16 +18,16 @@ import android.widget.Toast;
 
 public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 	
-	private static final int CONNECT = 0;
-    private static final int DISCONNECT = 1;
-    private static final int WELCOME = 2;
-    private static final int FILE_REQUEST = 3;
-    private static final int FILE = 4;
-    private static final int PAUSE = 5;
-    private static final int PLAY = 6;
-    private static final int SEEK_TO = 7;
-    private static final int STOP_PLAYBACK = 8;
-    private static final int REQUEST_SEEK_TO = 9;
+	private static final byte CONNECT = 0x00;
+    private static final byte DISCONNECT = 0x01;
+    private static final byte WELCOME = 0x02;
+    private static final byte FILE_REQUEST = 0x03;
+    private static final byte FILE = 0x04;
+    private static final byte PAUSE = 0x05;
+    private static final byte PLAY = 0x06;
+    private static final byte SEEK_TO = 0x07;
+    private static final byte STOP_PLAYBACK = 0x08;
+    private static final byte REQUEST_SEEK_TO = 0x09;
 
     private String server;
     private int uuid;
@@ -85,14 +85,14 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             InputStream inputstream = socket.getInputStream();
             outputStream = socket.getOutputStream();
             
-            messageType[0]=Integer.valueOf(CONNECT).byteValue();
+            messageType[0]=CONNECT;
             outputStream.write(messageType);
             Log.d("client log", "sent connect message to server");
             
             while (true) {
             	
             	if (isTaskCancelled){
-            		messageType[0]=Integer.valueOf(DISCONNECT).byteValue();
+            		messageType[0]=DISCONNECT;
             		outputStream.write(messageType);
             		outputStream.write(Integer.valueOf(uuid).byteValue());
             		socket.close();
@@ -105,7 +105,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	if (packetType == WELCOME){
             		Log.d("client log", "received welcome message from server");
             		uuid = inputstream.read();
-            		messageType[0]=Integer.valueOf(FILE_REQUEST).byteValue();
+            		messageType[0]=FILE_REQUEST;
             		outputStream.write(messageType);
             		Log.d("client log", "sent file request message to server");
             	}
@@ -140,14 +140,14 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		int fileLength = byteArrayToInt(length);
             		byte[] fileExtension = new byte[3];
             		inputstream.read(fileExtension, 0, 3);
-
-            		
             		
             		String filetype = new String(fileExtension);
-            		
+            		Log.d("client log", "created file type string");
             		
             		File file = createFile(filetype);
+            		Log.d("client log", "created file object");
             		Uri uri = Uri.fromFile(file);
+            		Log.d("client log", "got uri from file object");
  
             		songByteArray = new byte[fileLength];
             		songByteLength = fileLength;
@@ -163,12 +163,12 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		songUri = musicPlayerService.getCurrentTrackUri();
             		
             		// update activity UI
-            		activity.setupWidgets(songUri.toString());
+//            		activity.setupWidgets(songUri.toString());
             		
             		// request playback location of file
-            		messageType[0] = Integer.valueOf(REQUEST_SEEK_TO).byteValue();
+            		messageType[0] = REQUEST_SEEK_TO;
             		outputStream.write(messageType);
-            		Log.d("client log", "sent request seek posiition message to server");
+            		Log.d("client log", "sent request seek position message to server");
             	}
             	
             	else if (packetType == PAUSE) {
@@ -200,13 +200,14 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
            
             
         } catch (Exception e) {
+        	Log.d("client log", e.toString());
         }
 		return null;
     }
     
     public void sendPause() {
     	byte[] messageType = new byte[1];
-    	messageType[0] = Integer.valueOf(PAUSE).byteValue();
+    	messageType[0] = PAUSE;
     	try {
 			outputStream.write(messageType);
 			Log.d("client log", "sent pause message to server");
@@ -217,7 +218,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     
     public void sendPlay() {
     	byte[] messageType = new byte[1];
-    	messageType[0] = Integer.valueOf(PLAY).byteValue();
+    	messageType[0] = PLAY;
     	try {
 			outputStream.write(messageType);
 			Log.d("client log", "sent play message to server");

@@ -131,6 +131,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		
             		FileInputStream songFileinputstream;
             		File songfile = new File(getPath(songUri));
+            		Log.d("server log", "created file object");
                 	try {
 //                		Log.d("server log", "this is the File songfile.toUri() "+songfile.toURI());
 //                		Log.d("server log", "this is the File songfile.exists() "+Boolean.valueOf(songfile.exists()).toString());
@@ -141,8 +142,10 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 //                		Log.d("server log", "this is the file's length "+Integer.valueOf((int)songfile.length()).toString());
                 		songByteArray = new byte[songByteLength];
                 		songFileinputstream.read(songByteArray, 0, songByteLength);
+                		Log.d("server log", "copied file bytes to byte array");
                 		songFileinputstream.close();
-                	} catch (Exception e) {  
+                	} catch (Exception e) {
+                		Log.d("server log", e.toString());
                 		e.printStackTrace();  
                 	}
             		
@@ -161,7 +164,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
                 		packet[i] = length[i-1];
                 	}
 
-                	Log.d("server log", "this is the songbyte length"+Integer.valueOf(songByteLength));
+                	Log.d("server log", "songbyte length: "+Integer.valueOf(songByteLength));
                 	
                 	for (int i=5; i<8; i++) {
                 		packet[i] = fileExtension[i-5];
@@ -172,7 +175,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
                 	}
                 	
                 	outputStream.write(packet);
-                	Log.d("server log", "packet away. weeeeeee");
+                	Log.d("server log", "sent file packet to client");
             	}
 
             	else if (packetType == FILE) {
@@ -240,6 +243,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 
         }
         } catch (Exception e) {
+        	Log.d("server log", e.toString());
         }
 		return null;
     }
