@@ -146,25 +146,20 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
                 		Log.d("server log", e.toString());
                 		e.printStackTrace();  
                 	}
-            		
-                
+
                 	byte type_packet = FILE;
                 	outputStream.write(type_packet);
                 	byte[] length = intToByteArray(songByteLength);
                 	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
 
                 	outputStream.write(length,0,length.length);
-                	Log.d("server log", "length of length packet: "+Integer.valueOf(length.length));
-                	Log.d("server log", "songbyte length: "+Integer.valueOf(songByteLength));
                 	
                 	outputStream.write(fileExtension,0,fileExtension.length);
-                	Log.d("server log","fileExtension.length:"+Integer.valueOf(fileExtension.length));
-                	Log.d("server log", "between fileextension and songbytelength");
                 	
+
+                	outputStream.write(length,0,length.length);
+                	outputStream.write(fileExtension,0,fileExtension.length);
                 	outputStream.write(songByteArray,0,songByteArray.length);
-                	Log.d("server log", Integer.valueOf(songByteArray.length).toString());
-                	Log.d("server log", "before writing packet to outputstream.");
-                	//outputStream.write(packet);
                 	Log.d("server log", "sent file packet to client");
                 	
             	}
@@ -295,6 +290,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     
     public void broadcastSong() {
     	Log.d("server log", "broadcasted song");
+    	
     	// get current track file from musicPlayerService
 		songUri = musicPlayerService.getCurrentTrackUri();
 		
