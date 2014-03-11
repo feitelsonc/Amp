@@ -1,5 +1,6 @@
 package com.amp;
 
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -138,11 +139,12 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		byte[] length = new byte[4];
             		inputstream.read(length, 0, 4);
             		int fileLength = byteArrayToInt(length);
+            		Log.d("client log", "length of file received: " + Integer.valueOf(fileLength).toString());
             		byte[] fileExtension = new byte[3];
             		inputstream.read(fileExtension, 0, 3);
             		
             		String filetype = new String(fileExtension);
-            		Log.d("client log", "created file type string");
+            		Log.d("client log", "extention of file received: " + filetype);
             		
             		File file = createFile(filetype);
             		Log.d("client log", "created file object");
@@ -152,14 +154,28 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		songByteArray = new byte[fileLength];
             		songByteLength = fileLength;
             		
-            		inputstream.read(songByteArray, 0, fileLength);
+            		// read file bytes from socket input stream
+//            		int packetSize = 100;
+//            		int remainder = songByteLength % packetSize;
+//            		for (int i=0; i<songByteLength-packetSize; i+=packetSize) {
+//            			inputstream.read(songByteArray, i, packetSize);
+//            		}
+//            		if (remainder > 0) {
+//            			inputstream.read(songByteArray, songByteLength-remainder-1, remainder);
+//            		}
+            		DataInputStream in = new DataInputStream(inputstream);
+            		in.readFully(songByteArray, 0, fileLength);
+//            		inputstream.read(songByteArray, 0, fileLength);
+            		Log.d("client log", "read file bytes from input stream");
             		
             		FileOutputStream fileoutputstream = new FileOutputStream(file);
 
             		fileoutputstream.write(songByteArray);
+            		Log.d("client log", "wrote file bytes to file");
             		fileoutputstream.close();
             		
             		musicPlayerService.initializeSongAndPause(uri);
+            		Log.d("client log", "initialized music player");
             		songUri = musicPlayerService.getCurrentTrackUri();
             		
             		// update activity UI
@@ -194,6 +210,10 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	else if (packetType == STOP_PLAYBACK) {
             		Log.d("client log", "received stop playback message from server");
             		musicPlayerService.stopPlayback();
+            	}
+            	
+            	else {
+            		Log.d("client log", "invalid packet type received");
             	}
             	
             }
@@ -284,7 +304,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	String date = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
 
     	final File f = new File(Environment.getExternalStorageDirectory() + "/"
-				+ activity.getPackageName() + "/Shared Songs/Song-" + date + "."
+				+ "Amp" + "/Shared Songs/Song-" + date + "."
 				+ FileType);
 
 		File dirs = new File(f.getParent());
