@@ -7,6 +7,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 public class AudioService extends Service {
 	
@@ -57,9 +58,11 @@ public class AudioService extends Service {
 			player.setDataSource(getApplicationContext(), currentSongUri);
 			player.prepare();
 			player.start();
-			player.pause();
+//			player.pause();
 		}
-		catch(Exception e) {}
+		catch(Exception e) {
+			Log.d("client log", e.toString());
+		}
 	}
 	
 	public void stopPlayback() {
