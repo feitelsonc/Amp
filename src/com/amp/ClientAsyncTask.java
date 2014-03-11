@@ -74,8 +74,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     protected Void doInBackground(Void... params) {
         try {
         	
-//        	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
-        	
             byte[] messageType = new byte[1];
             byte[] packetType = new byte[1];
             
@@ -170,7 +168,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		songUri = musicPlayerService.getCurrentTrackUri();
             		
             		// update activity UI
-//            		activity.setupWidgets(songUri.toString());
+//            		activity.reloadUI();
             		
             		// request playback location of file
             		messageType[0] = REQUEST_SEEK_TO;

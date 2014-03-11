@@ -69,7 +69,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     private Handler handler = new Handler();
     private Ticker ticker = null;
     private boolean servconnection = false;
-    // private variables for wifi direct
+    
+    // private variables for wifi-direct and tcp connections
     private WifiP2pManager mManager;
     private Channel mChannel;
     private BroadcastReceiver mReceiver;
@@ -79,7 +80,12 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     private String currentGroupAddress;
     private ServerAsyncTask server = null;
     private ClientAsyncTask client = null;
-
+    private boolean reloadUI = false;
+    
+    public void reloadUI() {
+    	reloadUI = true;
+    	this.selectedSongUriString = musicPlayerService.getCurrentTrackUri().getPath();
+    }
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -163,10 +169,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    
 		setupWidgets(selectedSongUriString);
 		
-		if(ticker == null && AudioService.isServiceStarted()) {
+//		if(ticker == null && AudioService.isServiceStarted()) {
     		ticker = new Ticker();
 			ticker.start();
-    	}
+//    	}
 		
 	    mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 	    mChannel = mManager.initialize(this, getMainLooper(), null);
@@ -508,8 +514,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    				
 	    				if(!canceled) {
 	    					if (musicPlayerService != null) {
-	    						if (musicPlayerService.isPlaying())
+	    						if (musicPlayerService.isPlaying()) {
 		    						setPositionTrackerWidgets();
+		    						if (reloadUI) {
+		    							setupWidgets(selectedSongUriString);
+		    							reloadUI = false;
+		    						}
+	    						}
 	    					}
 	    				}
 	    			}
