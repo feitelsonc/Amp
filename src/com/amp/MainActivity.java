@@ -105,7 +105,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		            // Play is set
 		        	playPause.setBackgroundResource(R.drawable.btn_play);
 		        	if(musicPlayerService.isPlaying()) {
-		        		musicPlayerService.pause();
+		        		
 		        		
 		        		if (masterMode && server != null) {
 		        			server.broadcastPause();
@@ -113,11 +113,12 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        		else if (!masterMode && client != null) {
 		        			client.sendPause();
 		        		}
+		        		musicPlayerService.pause();
 		        	}
 		        } else {
 		            // Pause is set
 		        	playPause.setBackgroundResource(R.drawable.btn_pause);
-		        	musicPlayerService.play();
+		        	
 		        	
 		        	if (masterMode && server != null) {
 	        			server.broadcastPlay();
@@ -125,6 +126,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        	else if (!masterMode && client != null) {
 	        			client.sendPlay();
 	        		}
+		        	musicPlayerService.play();
 		        }
 		    }
 		});
@@ -564,7 +566,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	public void onStopTrackingTouch(SeekBar musicProgress) {
 		musicProgress.setProgress(musicProgress.getProgress());
 		if (musicPlayerService != null && musicPlayerService.isPlaying()) {
-			musicPlayerService.seekTo(musicProgress.getProgress()*1000);
+			
 			
 			if (masterMode && server != null) {
     			server.broadcastSeekTo();
@@ -572,6 +574,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         	else if (!masterMode && client != null) {
     			client.sendSeekTo();
     		}
+			musicPlayerService.seekTo(musicProgress.getProgress()*1000);
 		}
 	}
 
