@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.annotation.SuppressLint;
 import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
@@ -59,7 +60,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     
     public void cancelTask() {
         isTaskCancelled = true;
-        clientAcceptor.stopAccepter();
+//        clientAcceptor.stopAccepter();
     }
     
     public static int byteArrayToInt(byte[] b) {
@@ -89,8 +90,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         	
         	clientAcceptor = new ClientAccepter();
         	clientAcceptor.start();
-        	Log.d("server log", "clientAcceptor has been started");
-        	 while (true) {
+        	Log.d("server log", "clientAccepter started");
+        	while (true) {
         		 
         	DataInputStream inputstream;
         	OutputStream outputStream;
@@ -141,7 +142,13 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		songUri = musicPlayerService.getCurrentTrackUri();
             		
             		FileInputStream songFileinputstream;
-            		File songfile = new File(getPath(context, songUri));
+            		File songfile;
+            		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            			songfile = new File(getPath(songUri));
+            		}
+            		else {
+            			songfile = new File(getPath(context, songUri));
+            		}
             		Log.d("server log", "created file object");
                 	try {
                 		songFileinputstream = new FileInputStream(songfile);
@@ -260,21 +267,20 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void broadcastPause(int clientOriginator) {
-    	Log.d("server log", "broadcasted pause");
     	byte[] messageType = new byte[1];
     	messageType[0] = PAUSE;
     	sendToClients(messageType, clientOriginator);
+    	Log.d("server log", "broadcasted pause");
     }
     
     public void broadcastPlay(int clientOriginator) {
-    	Log.d("server log", "broadcasted play");
     	byte[] messageType = new byte[1];
     	messageType[0] = PLAY;
     	sendToClients(messageType, clientOriginator);
+    	Log.d("server log", "broadcasted play");
     }
     
     public void broadcastSeekTo(int clientOriginator) {
-    	Log.d("server log", "broadcasted seek to");
     	byte[] packet = new byte[5];
     	packet[0] = SEEK_TO;
     	byte[] millisecondsArray = new byte[4];
@@ -284,24 +290,29 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     		packet[i] = millisecondsArray[i-1];
     	}
     	sendToClients(packet, clientOriginator);
+    	Log.d("server log", "broadcasted seek to");
     }
     
     public void broadcastStopPlayback(int clientOriginator) {
-    	Log.d("server log", "broadcasted stop");
     	byte[] messageType = new byte[1];
     	messageType[0] = STOP_PLAYBACK;
     	sendToClients(messageType, clientOriginator);
+    	Log.d("server log", "broadcasted stop");
     }
     
     public void broadcastSong(int clientOriginator) {
-    	Log.d("server log", "broadcasted song");
-    	
     	// get current track file from musicPlayerService
 		songUri = musicPlayerService.getCurrentTrackUri();
 		
 		FileInputStream songFileinputstream;
     	try {
-    		File songfile = new File(getPath(context, songUri));
+    		File songfile;
+    		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+    			songfile = new File(getPath(songUri));
+    		}
+    		else {
+    			songfile = new File(getPath(context, songUri));
+    		}
     		songFileinputstream = new FileInputStream(songfile);
     		songByteLength = (int) songfile.length();
     		songByteArray = new byte[songByteLength];
@@ -327,7 +338,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     		packet[i] = songByteArray[i-8];
     	}
     	sendToClients(packet, clientOriginator);
-
+    	Log.d("server log", "broadcasted song");
     }
     
     private File createFile(String FileType){
@@ -453,7 +464,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
      * @param uri The Uri to query.
      * @author paulburke
      */
-    public static String getPath(final Context context, final Uri uri) {
+    @SuppressLint("NewApi")
+	public static String getPath(final Context context, final Uri uri) {
 
         final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
 

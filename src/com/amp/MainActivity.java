@@ -113,6 +113,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		            // Play is set
 		        	playPause.setBackgroundResource(R.drawable.btn_play);
 		        	if(musicPlayerService.isPlaying()) {
+		        		if (server == null) {
+		        			Toast.makeText(getApplicationContext(), "server is null", Toast.LENGTH_SHORT).show();
+		        		}
 		        		
 		        		
 		        		if (masterMode && server != null) {
@@ -126,6 +129,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        } else {
 		            // Pause is set
 		        	playPause.setBackgroundResource(R.drawable.btn_pause);
+		        	
+		        	if (server == null) {
+	        			Toast.makeText(getApplicationContext(), "server is null", Toast.LENGTH_SHORT).show();
+	        		}
 		        	
 		        	
 		        	if (masterMode && server != null) {
