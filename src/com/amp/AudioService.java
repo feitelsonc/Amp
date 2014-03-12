@@ -84,7 +84,10 @@ public class AudioService extends Service {
 	
 	public void play() {
 		if (!player.isPlaying() && !playbackStopped) {
+			Log.d("server log", "time BEFORE before start: " + Long.valueOf(System.currentTimeMillis()).toString());
+			Log.d("server log", "time before start: " + Long.valueOf(System.currentTimeMillis()).toString());
 			player.start();
+			Log.d("server log", "time after start: " + Long.valueOf(System.currentTimeMillis()).toString());
 		}
 	}
 
