@@ -1,5 +1,6 @@
 package com.amp;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import android.app.ActionBar;
@@ -28,6 +29,7 @@ import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.view.Menu;
@@ -114,7 +116,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        		
 		        		
 		        		if (masterMode && server != null) {
-		        			server.broadcastPause();
+		        			server.broadcastPause(-1);
 		        		}
 		        		else if (!masterMode && client != null) {
 		        			client.sendPause();
@@ -127,7 +129,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        	
 		        	
 		        	if (masterMode && server != null) {
-	        			server.broadcastPlay();
+	        			server.broadcastPlay(-1);
 	        		}
 		        	else if (!masterMode && client != null) {
 	        			client.sendPlay();
@@ -360,7 +362,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    	musicPlayerService.initializeSong(selectedSongUri);
 	    	
 	    	if (masterMode && server != null) {
-    			server.broadcastSong();
+    			server.broadcastSong(-1);
     		}
     		else if (!masterMode && client != null) {
     			client.sendSong();
@@ -580,7 +582,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			
 			
 			if (masterMode && server != null) {
-    			server.broadcastSeekTo();
+    			server.broadcastSeekTo(-1);
     		}
         	else if (!masterMode && client != null) {
     			client.sendSeekTo();
@@ -701,6 +703,18 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		if (server != null) {
 			server.cancelTask();
 		}
+		
+		final File f = new File(Environment.getExternalStorageDirectory() + "/" + "Amp" + "/Shared Songs/");
+		deleteRecursively(f);
+	}
+	
+	void deleteRecursively(File file) {
+		if (file.isDirectory()) {
+			for (File child : file.listFiles()) {
+				deleteRecursively(child);
+			}    
+		}
+		file.delete();
 	}
 	
 	public void recursivelyInitializeServerConnection(WifiP2pManager manager){
