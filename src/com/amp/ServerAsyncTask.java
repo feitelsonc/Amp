@@ -427,8 +427,20 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	    		} catch (Exception e) {
 	    			return;
 	    		}
-	
-	    		new Runnable() {
+	    		
+	    		try {
+					Log.d("server log", "waiting for clients to connect");
+					Socket client = serverSocket.accept();
+					Log.d("server log", "client connected");
+					dictionary.put(Integer.valueOf(numClients).toString(), client);
+
+					numClients++;
+				} catch (Exception e) {
+					Log.d("server log","This is an error of type: "+e.toString());
+				}
+	    		
+	    		
+	    		/*Runnable innerRunnable = new Runnable() {
 	    			
 	    			@Override
 	    			public void run() {
@@ -446,6 +458,9 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	    				
 	    			}
 	    		};
+	    		
+	    		innerRunnable.
+	    		*/
      		}
     	}
     	
