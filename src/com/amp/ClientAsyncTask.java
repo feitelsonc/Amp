@@ -229,6 +229,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	try {
 			outputStream.write(messageType);
 			Log.d("client log", "sent play message to server");
+			sendSeekTo();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
