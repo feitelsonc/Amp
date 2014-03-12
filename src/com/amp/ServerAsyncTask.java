@@ -9,8 +9,8 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import android.annotation.SuppressLint;
 import android.content.ContentUris;
@@ -41,7 +41,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	private AudioService musicPlayerService = null;
 	private MainActivity activity;
 	private int numClients = 0;
-	static Map<String, Socket> dictionary = new HashMap<String, Socket>(); // maps uuids to sockets of clients
+	static Map<String, Socket> dictionary = new ConcurrentHashMap<String, Socket>(); // maps uuids to sockets of clients
 	
     private Context context;
     private Uri songUri;
@@ -357,7 +357,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     
     @Override
     protected void onPreExecute() {
-    	Toast.makeText(context, "Server Started", Toast.LENGTH_SHORT).show();
+//    	Toast.makeText(context, "Server Started", Toast.LENGTH_SHORT).show();
     }
     
     @Override

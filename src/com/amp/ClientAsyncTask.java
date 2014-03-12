@@ -319,7 +319,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     
     @Override
     protected void onPreExecute() {
-    	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
+//    	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
     }
     
     @Override
