@@ -32,7 +32,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 
     private String server;
     private int uuid;
-    OutputStream outputStream;
+    private OutputStream outputStream;
     
 	private AudioService musicPlayerService = null;
 	private MainActivity activity;
@@ -41,6 +41,8 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     private byte[] songByteArray;
     private int songByteLength;
     private boolean isTaskCancelled = false;
+    private long timeAtSend;
+    private int timeDelay;
     
     public ClientAsyncTask(Context context, AudioService musicPlayerService, String host, MainActivity activity) {
         this.context = context;
@@ -86,6 +88,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             outputStream = socket.getOutputStream();
             
             messageType[0]=CONNECT;
+            timeAtSend = System.currentTimeMillis();
             outputStream.write(messageType);
             Log.d("client log", "sent connect message to server");
             
@@ -103,6 +106,8 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	inputstream.readFully(packetType, 0, 1);
             	
             	if (packetType[0] == WELCOME){
+            		timeDelay = (int) (System.currentTimeMillis() - timeAtSend)/2;
+            		Log.d("client log", "time delay: " + Integer.valueOf(timeDelay).toString());
             		Log.d("client log", "received welcome message from server");
 //            		uuid = inputstream.read();
             		messageType[0]=FILE_REQUEST;
@@ -138,33 +143,26 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		byte[] length = new byte[4];
             		inputstream.readFully(length, 0, 4);
             		int fileLength = byteArrayToInt(length);
-            		Log.d("client log", "length of file received: " + Integer.valueOf(fileLength).toString());
             		byte[] fileExtension = new byte[3];
             		inputstream.readFully(fileExtension, 0, 3);
             		
             		String filetype = new String(fileExtension);
-            		Log.d("client log", "extention of file received: " + filetype);
             		
             		File file = createFile(filetype);
-            		Log.d("client log", "created file object");
             		Uri uri = Uri.fromFile(file);
-            		Log.d("client log", "got uri from file object");
  
             		songByteArray = new byte[fileLength];
             		songByteLength = fileLength;
             		
             		// read file bytes from socket input stream
             		inputstream.readFully(songByteArray, 0, fileLength);
-            		Log.d("client log", "read file bytes from input stream");
             		
             		FileOutputStream fileoutputstream = new FileOutputStream(file);
 
             		fileoutputstream.write(songByteArray);
-            		Log.d("client log", "wrote file bytes to file");
             		fileoutputstream.close();
             		
             		musicPlayerService.initializeSongAndPause(uri);
-            		Log.d("client log", "initialized music player");
             		songUri = musicPlayerService.getCurrentTrackUri();
             		
             		// update activity UI

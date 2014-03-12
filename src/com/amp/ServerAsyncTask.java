@@ -90,7 +90,6 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         	
         	clientAcceptor = new ClientAccepter();
         	clientAcceptor.start();
-        	Log.d("server log", "clientAccepter started");
         	while (true) {
         		 
         	DataInputStream inputstream;
@@ -103,12 +102,10 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	        		
 	        	}
 	        	else {
-	        		Log.d("server log", "received valid input from client, in client iterator, client i #: "+Integer.valueOf(i).toString());
 	        		outputStream = client.getOutputStream();
 	        	}
 	        	
             	if (isTaskCancelled) {
-            		Log.d("server log", "isTaskCancelled is true");
             		broadcastStopPlayback(-1);
             		for (int i2=0; i2<numClients; i2++) {
             			dictionary.get(Integer.valueOf(i2)).close();          			
@@ -149,13 +146,11 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		else {
             			songfile = new File(getPath(context, songUri));
             		}
-            		Log.d("server log", "created file object");
                 	try {
                 		songFileinputstream = new FileInputStream(songfile);
                 		songByteLength = (int) songfile.length();
                 		songByteArray = new byte[songByteLength];
                 		songFileinputstream.read(songByteArray, 0, songByteLength);
-                		Log.d("server log", "copied file bytes to byte array");
                 		songFileinputstream.close();
                 	} catch (Exception e) {
                 		Log.d("server log", e.toString());
@@ -219,6 +214,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.play();
             		
             		broadcastPlay(i);
+            		broadcastSeekTo(i);
             	}
             	
             	else if (packetType[0] == REQUEST_SEEK_TO) {

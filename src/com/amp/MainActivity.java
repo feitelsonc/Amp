@@ -112,11 +112,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        if (isChecked) {
 		            // Play is set
 		        	playPause.setBackgroundResource(R.drawable.btn_play);
-		        	if(musicPlayerService.isPlaying()) {
-		        		if (server == null) {
-		        			Toast.makeText(getApplicationContext(), "server is null", Toast.LENGTH_SHORT).show();
-		        		}
-		        		
+		        	if (musicPlayerService.isPlaying()) {
+		        		musicPlayerService.pause();
 		        		
 		        		if (masterMode && server != null) {
 		        			server.broadcastPause(-1);
@@ -124,16 +121,11 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        		else if (!masterMode && client != null) {
 		        			client.sendPause();
 		        		}
-		        		musicPlayerService.pause();
 		        	}
 		        } else {
 		            // Pause is set
 		        	playPause.setBackgroundResource(R.drawable.btn_pause);
-		        	
-		        	if (server == null) {
-	        			Toast.makeText(getApplicationContext(), "server is null", Toast.LENGTH_SHORT).show();
-	        		}
-		        	
+		        	musicPlayerService.play();
 		        	
 		        	if (masterMode && server != null) {
 	        			server.broadcastPlay(-1);
@@ -141,7 +133,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        	else if (!masterMode && client != null) {
 	        			client.sendPlay();
 	        		}
-		        	musicPlayerService.play();
 		        }
 		    }
 		});
@@ -241,7 +232,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	
 	}
 	
-	protected void onPause() {
+	@Override
+	public void onPause() {
 		super.onPause();
 		
 		if (ticker != null) {
