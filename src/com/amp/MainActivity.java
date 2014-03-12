@@ -114,7 +114,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        		
 		        		
 		        		if (masterMode && server != null) {
-		        			server.broadcastPause();
+		        			server.broadcastPause(-1);
 		        		}
 		        		else if (!masterMode && client != null) {
 		        			client.sendPause();
@@ -127,7 +127,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        	
 		        	
 		        	if (masterMode && server != null) {
-	        			server.broadcastPlay();
+	        			server.broadcastPlay(-1);
 	        		}
 		        	else if (!masterMode && client != null) {
 	        			client.sendPlay();
@@ -360,7 +360,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    	musicPlayerService.initializeSong(selectedSongUri);
 	    	
 	    	if (masterMode && server != null) {
-    			server.broadcastSong();
+    			server.broadcastSong(-1);
     		}
     		else if (!masterMode && client != null) {
     			client.sendSong();
@@ -580,7 +580,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			
 			
 			if (masterMode && server != null) {
-    			server.broadcastSeekTo();
+    			server.broadcastSeekTo(-1);
     		}
         	else if (!masterMode && client != null) {
     			client.sendSeekTo();

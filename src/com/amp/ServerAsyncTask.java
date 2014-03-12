@@ -106,7 +106,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 	        	
             	if (isTaskCancelled) {
             		Log.d("server log", "isTaskCancelled is true");
-            		broadcastStopPlayback();
+            		broadcastStopPlayback(-1);
             		for (int i2=0; i2<numClients; i2++) {
             			dictionary.get(Integer.valueOf(i2)).close();          			
             		}
@@ -190,8 +190,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		// update activity UI
             		activity.setupWidgets(songUri.toString());
             		
-            		broadcastStopPlayback();
-            		broadcastSong();   
+            		broadcastStopPlayback(-1);
+            		broadcastSong(i);   
             		
             		// request playback location of file
             		messageType[0] = REQUEST_SEEK_TO;
@@ -202,14 +202,14 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		Log.d("server log", "client paused");
             		musicPlayerService.pause();
             		
-            		broadcastPause();
+            		broadcastPause(i);
             	}
             	
             	else if (packetType[0] == PLAY) {
             		Log.d("server log", "client played");
             		musicPlayerService.play();
             		
-            		broadcastPlay();
+            		broadcastPlay(i);
             	}
             	
             	else if (packetType[0] == REQUEST_SEEK_TO) {
@@ -236,8 +236,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.play();
             		musicPlayerService.seekTo(milliseconds);
             		
-            		broadcastPlay();
-            		broadcastSeekTo();
+            		broadcastPlay(i);
+            		broadcastSeekTo(i);
             	}
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
@@ -257,21 +257,21 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 		return null;
     }
     
-    public void broadcastPause() {
+    public void broadcastPause(int clientOriginator) {
     	Log.d("server log", "broadcasted pause");
     	byte[] messageType = new byte[1];
     	messageType[0] = PAUSE;
-    	sendToClients(messageType);
+    	sendToClients(messageType, clientOriginator);
     }
     
-    public void broadcastPlay() {
+    public void broadcastPlay(int clientOriginator) {
     	Log.d("server log", "broadcasted play");
     	byte[] messageType = new byte[1];
     	messageType[0] = PLAY;
-    	sendToClients(messageType);
+    	sendToClients(messageType, clientOriginator);
     }
     
-    public void broadcastSeekTo() {
+    public void broadcastSeekTo(int clientOriginator) {
     	Log.d("server log", "broadcasted seek to");
     	byte[] packet = new byte[5];
     	packet[0] = SEEK_TO;
@@ -281,17 +281,17 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     	for (int i=1; i<5; i++) {
     		packet[i] = millisecondsArray[i-1];
     	}
-    	sendToClients(packet);
+    	sendToClients(packet, clientOriginator);
     }
     
-    public void broadcastStopPlayback() {
+    public void broadcastStopPlayback(int clientOriginator) {
     	Log.d("server log", "broadcasted stop");
     	byte[] messageType = new byte[1];
     	messageType[0] = STOP_PLAYBACK;
-    	sendToClients(messageType);
+    	sendToClients(messageType, clientOriginator);
     }
     
-    public void broadcastSong() {
+    public void broadcastSong(int clientOriginator) {
     	Log.d("server log", "broadcasted song");
     	
     	// get current track file from musicPlayerService
@@ -324,7 +324,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     	for (int i=8; i<songByteLength+8; i++) {
     		packet[i] = songByteArray[i-8];
     	}
-    	sendToClients(packet);
+    	sendToClients(packet, clientOriginator);
 
     }
     
@@ -356,17 +356,19 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     	Toast.makeText(context, "Server Stopped", Toast.LENGTH_SHORT).show();
     }
     
-    private void sendToClients(byte[] packet) {
+    private void sendToClients(byte[] packet, int clientOriginator) {
     	OutputStream outputStream;
-    	
-		for (int i=0; i<numClients; i++) {
-			try {
-				outputStream = dictionary.get(Integer.valueOf(i).toString()).getOutputStream();
-				outputStream.write(packet);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+    	for (int i=0; i<numClients; i++) {
+    		if (i == clientOriginator) {
+    			continue;
+    		}
+    		try {
+    			outputStream = dictionary.get(Integer.valueOf(i).toString()).getOutputStream();
+    			outputStream.write(packet);
+    		} catch (IOException e) {
+    			e.printStackTrace();
+    		}
+    	}
     }
     
     private final synchronized String getPath(Uri uri) {
