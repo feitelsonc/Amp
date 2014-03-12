@@ -2,6 +2,7 @@ package com.amp;
 
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,10 +11,16 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Calendar;
 
+import android.annotation.SuppressLint;
+import android.content.ContentUris;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -166,7 +173,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		songUri = musicPlayerService.getCurrentTrackUri();
             		
             		// update activity UI
-//            		activity.reloadUI();
+            		activity.reloadUI();
             		
             		// request playback location of file
             		messageType[0] = REQUEST_SEEK_TO;
@@ -253,18 +260,38 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void sendSong() {
-    	Log.d("client log", "sent song");
-    	byte[] packet = new byte[songByteLength+11];
-    	packet[0] = Integer.valueOf(FILE).byteValue();
+    	// get current track file from musicPlayerService
+    	songUri = musicPlayerService.getCurrentTrackUri();
     	
+    	FileInputStream songFileinputstream;
+    	File songfile;
+    	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+    		songfile = new File(getPath(songUri));
+    	}
+    	else {
+    		songfile = new File(getPath(context, songUri));
+    	}
+    	try {
+    		songFileinputstream = new FileInputStream(songfile);
+    		songByteLength = (int) songfile.length();
+    		songByteArray = new byte[songByteLength];
+    		songFileinputstream.read(songByteArray, 0, songByteLength);
+    		songFileinputstream.close();
+    	} catch (Exception e) {
+    		Log.d("client log", e.toString());
+    		e.printStackTrace();  
+    	}
+    	
+    	byte[] packet = new byte[songByteLength+8];
+    	packet[0] = FILE;
     	byte[] length = intToByteArray(songByteLength);
-    	byte[] fileExtention = songUri.toString().substring(songUri.toString().length()-3).getBytes();
+    	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
     	
     	for (int i=1; i<5; i++) {
     		packet[i] = length[i-1];
     	}
     	for (int i=5; i<11; i++) {
-    		packet[i] = fileExtention[i-5];
+    		packet[i] = fileExtension[i-5];
     	}
     	for (int i=11; i<songByteLength+11; i++) {
     		packet[i] = songByteArray[i-11];
@@ -276,6 +303,18 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+    }
+    
+    private final synchronized String getPath(Uri uri) {
+        String res = null;
+        String[] proj = { MediaStore.Audio.Media.DATA };
+        Cursor cursor = context.getContentResolver().query(uri, proj, null, null, null);
+        if (cursor.moveToFirst()) {
+            int column_index = cursor .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
+            res = cursor.getString(column_index);
+        }
+        cursor.close();
+        return res;
     }
     
     @Override
@@ -306,6 +345,136 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 			e.printStackTrace();
 		}
 		return f;
+    }
+    
+
+    // The following URI methods are from http://stackoverflow.com/questions/20067508/get-real-path-from-uri-android-kitkat-new-storage-access-framework
+    /**
+     * Get a file path from a Uri. This will get the the path for Storage Access
+     * Framework Documents, as well as the _data field for the MediaStore and
+     * other file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @author paulburke
+     */
+    @SuppressLint("NewApi")
+	public static String getPath(final Context context, final Uri uri) {
+
+        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
+
+        // DocumentProvider
+        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
+            // ExternalStorageProvider
+            if (isExternalStorageDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                if ("primary".equalsIgnoreCase(type)) {
+                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                }
+            }
+            // DownloadsProvider
+            else if (isDownloadsDocument(uri)) {
+
+                final String id = DocumentsContract.getDocumentId(uri);
+                final Uri contentUri = ContentUris.withAppendedId(
+                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
+
+                return getDataColumn(context, contentUri, null, null);
+            }
+            // MediaProvider
+            else if (isMediaDocument(uri)) {
+                final String docId = DocumentsContract.getDocumentId(uri);
+                final String[] split = docId.split(":");
+                final String type = split[0];
+
+                Uri contentUri = null;
+                if ("image".equals(type)) {
+                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+                } else if ("video".equals(type)) {
+                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+                } else if ("audio".equals(type)) {
+                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                }
+
+                final String selection = "_id=?";
+                final String[] selectionArgs = new String[] {
+                        split[1]
+                };
+
+                return getDataColumn(context, contentUri, selection, selectionArgs);
+            }
+        }
+        // MediaStore (and general)
+        else if ("content".equalsIgnoreCase(uri.getScheme())) {
+            return getDataColumn(context, uri, null, null);
+        }
+        // File
+        else if ("file".equalsIgnoreCase(uri.getScheme())) {
+            return uri.getPath();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the value of the data column for this Uri. This is useful for
+     * MediaStore Uris, and other file-based ContentProviders.
+     *
+     * @param context The context.
+     * @param uri The Uri to query.
+     * @param selection (Optional) Filter used in the query.
+     * @param selectionArgs (Optional) Selection arguments used in the query.
+     * @return The value of the _data column, which is typically a file path.
+     */
+    public static String getDataColumn(Context context, Uri uri, String selection,
+            String[] selectionArgs) {
+
+        Cursor cursor = null;
+        final String column = "_data";
+        final String[] projection = {
+                column
+        };
+
+        try {
+            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
+                    null);
+            if (cursor != null && cursor.moveToFirst()) {
+                final int column_index = cursor.getColumnIndexOrThrow(column);
+                return cursor.getString(column_index);
+            }
+        } finally {
+            if (cursor != null)
+                cursor.close();
+        }
+        return null;
+    }
+
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is ExternalStorageProvider.
+     */
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is DownloadsProvider.
+     */
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is MediaProvider.
+     */
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
     
 }

@@ -60,7 +60,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     
     public void cancelTask() {
         isTaskCancelled = true;
-//        clientAcceptor.stopAccepter();
+        clientAcceptor.stopAccepter();
     }
     
     public static int byteArrayToInt(byte[] b) {
@@ -192,7 +192,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.initializeSongAndPause(uri);
             		songUri = musicPlayerService.getCurrentTrackUri();
             		// update activity UI
-            		activity.setupWidgets(songUri.toString());
+            		activity.reloadUI();
             		
             		broadcastStopPlayback(-1);
             		broadcastSong(i);   
@@ -301,28 +301,28 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 		songUri = musicPlayerService.getCurrentTrackUri();
 		
 		FileInputStream songFileinputstream;
+		File songfile;
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+			songfile = new File(getPath(songUri));
+		}
+		else {
+			songfile = new File(getPath(context, songUri));
+		}
     	try {
-    		File songfile;
-    		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-    			songfile = new File(getPath(songUri));
-    		}
-    		else {
-    			songfile = new File(getPath(context, songUri));
-    		}
     		songFileinputstream = new FileInputStream(songfile);
     		songByteLength = (int) songfile.length();
     		songByteArray = new byte[songByteLength];
     		songFileinputstream.read(songByteArray, 0, songByteLength);
     		songFileinputstream.close();
-    	} catch (Exception e) {  
+    	} catch (Exception e) {
+    		Log.d("server log", e.toString());
     		e.printStackTrace();  
     	}
 		
     	byte[] packet = new byte[songByteLength+8];
     	packet[0] = FILE;
     	byte[] length = intToByteArray(songByteLength);
-    	String tempExten = "mp3";
-    	byte[] fileExtension = tempExten.getBytes();
+    	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
     	
     	for (int i=1; i<5; i++) {
     		packet[i] = length[i-1];
@@ -434,29 +434,6 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 				} catch (Exception e) {
 					Log.d("server log","This is an error of type: "+e.toString());
 				}
-	    		
-	    		
-	    		/*Runnable innerRunnable = new Runnable() {
-	    			
-	    			@Override
-	    			public void run() {
-	    				try {
-	    					Log.d("server log", "waiting for clients to connect");
-	    					Socket client = serverSocket.accept();
-//	    		        	activity.toastClientConnected();
-	    					Log.d("server log", "client connected");
-	    					dictionary.put(Integer.valueOf(numClients).toString(), client);
-	
-	    					numClients++;
-	    				} catch (Exception e) {
-	    					Log.d("server log","This is an error of type: "+e.toString());
-	    				}
-	    				
-	    			}
-	    		};
-	    		
-	    		innerRunnable.
-	    		*/
      		}
     	}
     	
