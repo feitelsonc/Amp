@@ -45,7 +45,6 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private byte[] songByteArray;
     private int songByteLength;
     private boolean isTaskCancelled = false;
-    private Handler handler = new Handler();
     private ServerSocket serverSocket;
     private ClientAccepter clientAcceptor = null;
     
@@ -58,6 +57,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     
     public void cancelTask() {
         isTaskCancelled = true;
+        clientAcceptor.stopAccepter();
     }
     
     public static int byteArrayToInt(byte[] b) {

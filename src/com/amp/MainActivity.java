@@ -1,5 +1,6 @@
 package com.amp;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import android.app.ActionBar;
@@ -28,6 +29,7 @@ import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.view.Menu;
@@ -701,6 +703,18 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		if (server != null) {
 			server.cancelTask();
 		}
+		
+		final File f = new File(Environment.getExternalStorageDirectory() + "/" + "Amp" + "/Shared Songs/");
+		deleteRecursively(f);
+	}
+	
+	void deleteRecursively(File file) {
+		if (file.isDirectory()) {
+			for (File child : file.listFiles()) {
+				deleteRecursively(child);
+			}    
+		}
+		file.delete();
 	}
 	
 	public void recursivelyInitializeServerConnection(WifiP2pManager manager){
