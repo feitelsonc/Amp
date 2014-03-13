@@ -173,27 +173,33 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 
             		byte[] length = new byte[4];
             		inputstream.readFully(length, 0, 4);
+            		Log.d("server log", "here0.5");
             		int fileLength = byteArrayToInt(length);
             		byte[] fileExtension = new byte[3];
+            		Log.d("server log", "here1");
             		inputstream.readFully(fileExtension, 0, 3);
             		String filetype = new String(fileExtension);
             		File file = createFile(filetype);
             		Uri uri = Uri.fromFile(file);
+            		Log.d("server log", "here2");
             		songByteArray = new byte[fileLength];
             		songByteLength = fileLength;
             		inputstream.readFully(songByteArray, 0, fileLength);
+            		Log.d("server log", "here2.5");
             		FileOutputStream fileoutputstream = new FileOutputStream(file);
             		fileoutputstream.write(songByteArray);
             		fileoutputstream.close();
+            		Log.d("server log", "here3");
             		
             		musicPlayerService.initializeSongAndPause(uri);
             		songUri = musicPlayerService.getCurrentTrackUri();
             		// update activity UI
+            		Log.d("server log", "here3.5");
             		activity.reloadUI();
             		
             		broadcastStopPlayback(-1);
             		broadcastSong(i);   
-            		
+            		Log.d("server log", "here4");
             		// request playback location of file
             		messageType[0] = REQUEST_SEEK_TO;
             		outputStream.write(messageType);

@@ -117,7 +117,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 //            		uuid = inputstream.read();
             		if (musicPlayerService.isPlaying()) {
             			sendSong();
-            			Log.d("client log", "sent file message to server");
             		}
             		else {
             			messageType[0]=FILE_REQUEST;
@@ -288,17 +287,17 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	
     	byte[] packet = new byte[songByteLength+8];
     	packet[0] = FILE;
-    	byte[] length = intToByteArray(songByteLength);
+    	byte []length = intToByteArray(songByteLength);
     	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
     	
     	for (int i=1; i<5; i++) {
     		packet[i] = length[i-1];
     	}
-    	for (int i=5; i<11; i++) {
+    	for (int i=5; i<8; i++) {
     		packet[i] = fileExtension[i-5];
     	}
-    	for (int i=11; i<songByteLength+11; i++) {
-    		packet[i] = songByteArray[i-11];
+    	for (int i=8; i<songByteLength+8; i++) {
+    		packet[i] = songByteArray[i-8];
     	}
     	
     	try {
