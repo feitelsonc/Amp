@@ -78,15 +78,19 @@ public class AudioService extends Service {
 	
 	public void pause() {
 		if (player.isPlaying() && !playbackStopped) {
+			long timeBeforePause = System.currentTimeMillis();
 			player.pause();
+			long timeAfterPause = System.currentTimeMillis();
+			Log.d("server log", "Pause delay: " + Long.valueOf(timeAfterPause-timeBeforePause).toString());
 		}
 	}
 	
 	public void play() {
 		if (!player.isPlaying() && !playbackStopped) {
-			Log.d("server log", "time before start: " + Long.valueOf(System.currentTimeMillis()).toString());
+			long timeBeforePlay = System.currentTimeMillis();
 			player.start();
-			Log.d("server log", "time after start: " + Long.valueOf(System.currentTimeMillis()).toString());
+			long timeAfterPlay = System.currentTimeMillis();
+			Log.d("server log", "Play delay: " + Long.valueOf(timeAfterPlay-timeBeforePlay).toString());
 		}
 	}
 

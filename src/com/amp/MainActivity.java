@@ -3,18 +3,15 @@ package com.amp;
 import java.io.File;
 import java.util.ArrayList;
 
-import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.ContentUris;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -31,18 +28,16 @@ import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
-import android.provider.DocumentsContract;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
@@ -63,7 +58,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	private boolean connected;
 	private TextView groupAddressView;
 	private ViewFlipper viewSwitcher;
-	private ToggleButton playPause;
+	private Button playPause;
 	private ImageView albumArtView;
 	private TextView songTitleView;
 	private TextView timePlayed;
@@ -90,6 +85,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     private ServerAsyncTask server = null;
     private ClientAsyncTask client = null;
     private boolean reloadUI = false;
+    private URIManager uriManager;
     
     public void reloadUI() {
     	reloadUI = true;
@@ -99,6 +95,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+		
+		uriManager = new URIManager(this);
 		
 		// change color of action bar
 		ActionBar bar = getActionBar();
@@ -112,24 +110,21 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		timeLeft = (TextView) findViewById(R.id.timeLeft);
 		albumArtView = (ImageView) findViewById(R.id.albumCover);
 		songTitleView = (TextView) findViewById(R.id.songTitle);
-		playPause = (ToggleButton) findViewById(R.id.playPause);
-		playPause.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-		    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		        if (isChecked) {
-		            // Play is set
+		playPause = (Button) findViewById(R.id.playPause);
+		playPause.setOnClickListener(new View.OnClickListener() {
+		    public void onClick(View v) {
+		        if (musicPlayerService.isPlaying()) {
 		        	playPause.setBackgroundResource(R.drawable.btn_play);
-		        	if (musicPlayerService.isPlaying()) {
-		        		musicPlayerService.pause();
-		        		
-		        		if (masterMode && server != null) {
-		        			server.broadcastPause(-1);
-		        		}
-		        		else if (!masterMode && client != null) {
-		        			client.sendPause();
-		        		}
-		        	}
-		        } else {
-		            // Pause is set
+		        	musicPlayerService.pause();
+	        		
+	        		if (masterMode && server != null) {
+	        			server.broadcastPause(-1);
+	        		}
+	        		else if (!masterMode && client != null) {
+	        			client.sendPause();
+	        		}
+		        }
+		        else {
 		        	playPause.setBackgroundResource(R.drawable.btn_pause);
 		        	musicPlayerService.play();
 		        	
@@ -142,7 +137,35 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        }
 		    }
 		});
-		
+//		playPause.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//		    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//		        if (isChecked) {
+//		            // Play is set
+//		        	playPause.setBackgroundResource(R.drawable.btn_play);
+//		        	if (musicPlayerService.isPlaying()) {
+//		        		musicPlayerService.pause();
+//		        		
+//		        		if (masterMode && server != null) {
+//		        			server.broadcastPause(-1);
+//		        		}
+//		        		else if (!masterMode && client != null) {
+//		        			client.sendPause();
+//		        		}
+//		        	}
+//		        } else {
+//		            // Pause is set
+//		        	playPause.setBackgroundResource(R.drawable.btn_pause);
+//		        	musicPlayerService.play();
+//		        	
+//		        	if (masterMode && server != null) {
+//	        			server.broadcastPlay(-1);
+//	        		}
+//		        	else if (!masterMode && client != null) {
+//	        			client.sendPlay();
+//	        		}
+//		        }
+//		    }
+//		});
 		
 		intentType = getIntent().getStringExtra(SplashScreenActivity.GROUP_ACTION_EXTRA);
 		
@@ -394,7 +417,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	        		metaRetriver.setDataSource(this, selectedSongUri);
 	        	}
 	        	else {
-	        		metaRetriver.setDataSource(getPath(this, selectedSongUri));
+	        		metaRetriver.setDataSource(uriManager.getPath(this, selectedSongUri));
 	        	}
 	        }
 	        catch (Exception e) {
@@ -510,6 +533,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    			@Override
 	    			public void run() {
 	    				
+	    				if (!musicPlayerService.isPlaying()) {
+	    		        	playPause.setBackgroundResource(R.drawable.btn_play);
+	    				}
+	    				else {
+	    					playPause.setBackgroundResource(R.drawable.btn_pause);
+	    				}
+	    				
 	    				if (!groupInfoChanged) {
 	    					
 	    					mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener(){ 
@@ -535,6 +565,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		    						setPositionTrackerWidgets();
 		    						if (reloadUI) {
 		    							setupWidgets(selectedSongUriString);
+		    							Log.d("server log", "reloaded UI");
 		    							reloadUI = false;
 		    						}
 	    						}
@@ -723,7 +754,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		deleteRecursively(f);
 	}
 	
-	void deleteRecursively(File file) {
+	private void deleteRecursively(File file) {
 		if (file.isDirectory()) {
 			for (File child : file.listFiles()) {
 				deleteRecursively(child);
@@ -749,135 +780,5 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			}
 		});
 	}
-	
-
-    // The following URI methods are from http://stackoverflow.com/questions/20067508/get-real-path-from-uri-android-kitkat-new-storage-access-framework
-    /**
-     * Get a file path from a Uri. This will get the the path for Storage Access
-     * Framework Documents, as well as the _data field for the MediaStore and
-     * other file-based ContentProviders.
-     *
-     * @param context The context.
-     * @param uri The Uri to query.
-     * @author paulburke
-     */
-    @SuppressLint("NewApi")
-	public static String getPath(final Context context, final Uri uri) {
-
-        final boolean isKitKat = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT;
-
-        // DocumentProvider
-        if (isKitKat && DocumentsContract.isDocumentUri(context, uri)) {
-            // ExternalStorageProvider
-            if (isExternalStorageDocument(uri)) {
-                final String docId = DocumentsContract.getDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
-
-                if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
-                }
-            }
-            // DownloadsProvider
-            else if (isDownloadsDocument(uri)) {
-
-                final String id = DocumentsContract.getDocumentId(uri);
-                final Uri contentUri = ContentUris.withAppendedId(
-                        Uri.parse("content://downloads/public_downloads"), Long.valueOf(id));
-
-                return getDataColumn(context, contentUri, null, null);
-            }
-            // MediaProvider
-            else if (isMediaDocument(uri)) {
-                final String docId = DocumentsContract.getDocumentId(uri);
-                final String[] split = docId.split(":");
-                final String type = split[0];
-
-                Uri contentUri = null;
-                if ("image".equals(type)) {
-                    contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                } else if ("video".equals(type)) {
-                    contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-                } else if ("audio".equals(type)) {
-                    contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-                }
-
-                final String selection = "_id=?";
-                final String[] selectionArgs = new String[] {
-                        split[1]
-                };
-
-                return getDataColumn(context, contentUri, selection, selectionArgs);
-            }
-        }
-        // MediaStore (and general)
-        else if ("content".equalsIgnoreCase(uri.getScheme())) {
-            return getDataColumn(context, uri, null, null);
-        }
-        // File
-        else if ("file".equalsIgnoreCase(uri.getScheme())) {
-            return uri.getPath();
-        }
-
-        return null;
-    }
-
-    /**
-     * Get the value of the data column for this Uri. This is useful for
-     * MediaStore Uris, and other file-based ContentProviders.
-     *
-     * @param context The context.
-     * @param uri The Uri to query.
-     * @param selection (Optional) Filter used in the query.
-     * @param selectionArgs (Optional) Selection arguments used in the query.
-     * @return The value of the _data column, which is typically a file path.
-     */
-    public static String getDataColumn(Context context, Uri uri, String selection,
-            String[] selectionArgs) {
-
-        Cursor cursor = null;
-        final String column = "_data";
-        final String[] projection = {
-                column
-        };
-
-        try {
-            cursor = context.getContentResolver().query(uri, projection, selection, selectionArgs,
-                    null);
-            if (cursor != null && cursor.moveToFirst()) {
-                final int column_index = cursor.getColumnIndexOrThrow(column);
-                return cursor.getString(column_index);
-            }
-        } finally {
-            if (cursor != null)
-                cursor.close();
-        }
-        return null;
-    }
-
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is ExternalStorageProvider.
-     */
-    public static boolean isExternalStorageDocument(Uri uri) {
-        return "com.android.externalstorage.documents".equals(uri.getAuthority());
-    }
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is DownloadsProvider.
-     */
-    public static boolean isDownloadsDocument(Uri uri) {
-        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
-    }
-
-    /**
-     * @param uri The Uri to check.
-     * @return Whether the Uri authority is MediaProvider.
-     */
-    public static boolean isMediaDocument(Uri uri) {
-        return "com.android.providers.media.documents".equals(uri.getAuthority());
-    }
 	
 }
