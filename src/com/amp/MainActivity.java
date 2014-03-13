@@ -136,35 +136,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        }
 		    }
 		});
-//		playPause.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//		    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//		        if (isChecked) {
-//		            // Play is set
-//		        	playPause.setBackgroundResource(R.drawable.btn_play);
-//		        	if (musicPlayerService.isPlaying()) {
-//		        		musicPlayerService.pause();
-//		        		
-//		        		if (masterMode && server != null) {
-//		        			server.broadcastPause(-1);
-//		        		}
-//		        		else if (!masterMode && client != null) {
-//		        			client.sendPause();
-//		        		}
-//		        	}
-//		        } else {
-//		            // Pause is set
-//		        	playPause.setBackgroundResource(R.drawable.btn_pause);
-//		        	musicPlayerService.play();
-//		        	
-//		        	if (masterMode && server != null) {
-//	        			server.broadcastPlay(-1);
-//	        		}
-//		        	else if (!masterMode && client != null) {
-//	        			client.sendPlay();
-//	        		}
-//		        }
-//		    }
-//		});
 		
 		intentType = getIntent().getStringExtra(SplashScreenActivity.GROUP_ACTION_EXTRA);
 		
@@ -422,6 +393,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	        catch (Exception e) {
 	        	Log.d("server log", e.toString() + " when setting metaRetriver DataSource");
 	        }
+	        reloadUI.set(false);
 	       
 	        try {
 	        	// fix huge meta image art case
@@ -562,7 +534,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    					if (musicPlayerService != null) {
 	    						if (musicPlayerService.isPlaying()) {
 		    						setPositionTrackerWidgets();
-		    						if (reloadUI.compareAndSet(true, false)) {
+		    						if (reloadUI.get() == true) {
 		    							setupWidgets(selectedSongUriString);
 		    							Log.d("server log", "reloaded UI");
 		    						}
