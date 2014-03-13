@@ -510,7 +510,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     }
 	
 	private class TickerRunnable implements Runnable {
-	   	private final int TICKER_TIME = 250;
+	   	private final int TICKER_TIME = 100;
     	
     	private boolean canceled = false; 
     	private boolean groupInfoChanged = false;
