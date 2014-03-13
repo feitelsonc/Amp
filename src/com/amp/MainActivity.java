@@ -2,6 +2,7 @@ package com.amp;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.app.ActionBar;
 import android.app.Activity;
@@ -38,13 +39,11 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 import android.widget.ViewFlipper;
 
 import com.amp.AudioService.LocalBinder;
@@ -84,11 +83,11 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     private String currentGroupAddress;
     private ServerAsyncTask server = null;
     private ClientAsyncTask client = null;
-    private boolean reloadUI = false;
+    private AtomicBoolean reloadUI = new AtomicBoolean(false);
     private URIManager uriManager;
     
     public void reloadUI() {
-    	reloadUI = true;
+    	reloadUI.set(true);
     }
 
 	@Override
@@ -404,7 +403,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	
 	private void setupWidgets(String songUriString) {
 		if (songUriString != null && !songUriString.equals("")) {
-			if (!reloadUI) {
+			if (reloadUI.get() == false) {
 				selectedSongUri = Uri.parse(songUriString);
 			}
 			else {
@@ -413,7 +412,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 			
 	        metaRetriver = new MediaMetadataRetriever();
 	        try {
-	        	if (!reloadUI) {
+	        	if (reloadUI.get() == false) {
 	        		metaRetriver.setDataSource(this, selectedSongUri);
 	        	}
 	        	else {
@@ -563,10 +562,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    					if (musicPlayerService != null) {
 	    						if (musicPlayerService.isPlaying()) {
 		    						setPositionTrackerWidgets();
-		    						if (reloadUI) {
+		    						if (reloadUI.compareAndSet(true, false)) {
 		    							setupWidgets(selectedSongUriString);
 		    							Log.d("server log", "reloaded UI");
-		    							reloadUI = false;
 		    						}
 	    						}
 	    					}
@@ -738,6 +736,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		}
 		
 		if (AudioService.isServiceStarted()) {
+			musicPlayerService.releasePlayer();
 			stopService(new Intent(this, AudioService.class));
 			unbindToMusicPlayerService();
 		}

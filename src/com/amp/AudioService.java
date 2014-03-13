@@ -119,5 +119,9 @@ public class AudioService extends Service {
 	Uri getCurrentTrackUri() {
 		return currentSongUri;
 	}
+	
+	void releasePlayer() {
+		player.release();
+	}
 
 }
