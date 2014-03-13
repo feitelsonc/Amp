@@ -391,10 +391,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	        	}
 	        }
 	        catch (Exception e) {
-	        	Log.d("server log", e.toString() + " when setting metaRetriver DataSource");
+	        	Log.d("ui log", e.toString() + " when setting metaRetriver DataSource");
 	        }
 	        reloadUI.set(false);
-	       
 	        try {
 	        	// fix huge meta image art case
 	        	albumArt = metaRetriver.getEmbeddedPicture();
@@ -421,7 +420,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	            	songTitleView.setVisibility(View.VISIBLE);
 	            }
 	        } catch (Exception e) {
-	        	Log.d("server log", e.toString());
+	        	Log.d("ui log", e.toString());
 	        	albumArtView.setImageDrawable(getResources().getDrawable(R.drawable.no_cover));
 	        	songTitleView.setVisibility(View.VISIBLE);
 	        	songTitleView.setText(getResources().getString(R.string.untitled_track));
@@ -535,8 +534,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    						if (musicPlayerService.isPlaying()) {
 		    						setPositionTrackerWidgets();
 		    						if (reloadUI.get() == true) {
+		    							selectedSongUriString = musicPlayerService.getCurrentTrackUri().toString();
 		    							setupWidgets(selectedSongUriString);
-		    							Log.d("server log", "reloaded UI");
+		    							Log.d("ui log", "reloaded UI");
 		    						}
 	    						}
 	    					}
