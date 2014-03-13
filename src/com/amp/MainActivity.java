@@ -125,7 +125,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        }
 		        else {
 		        	playPause.setBackgroundResource(R.drawable.btn_pause);
-		        	musicPlayerService.play();
+		        	musicPlayerService.iterativePlay();
 		        	
 		        	if (masterMode && server != null) {
 	        			server.broadcastPlay(-1);
@@ -596,14 +596,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		musicProgress.setProgress(musicProgress.getProgress());
 		if (musicPlayerService != null && musicPlayerService.isPlaying()) {
 			
-			
+			musicPlayerService.iterativeSeekTo(musicProgress.getProgress()*1000);
 			if (masterMode && server != null) {
     			server.broadcastSeekTo(-1);
     		}
         	else if (!masterMode && client != null) {
     			client.sendSeekTo();
     		}
-			musicPlayerService.seekTo(musicProgress.getProgress()*1000);
 		}
 	}
 

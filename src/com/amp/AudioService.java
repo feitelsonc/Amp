@@ -87,12 +87,35 @@ public class AudioService extends Service {
 		}
 	}
 	
-	public void play() {
+//	public void play() {
+//		if (!player.isPlaying() && !playbackStopped) {
+//			long timeBeforePlay = System.currentTimeMillis();
+//			player.start();
+//			long timeAfterPlay = System.currentTimeMillis();
+//			Log.d("audio log", "Play delay: " + Long.valueOf(timeAfterPlay-timeBeforePlay).toString());
+//		}
+//	}
+	
+	public long play() {
 		if (!player.isPlaying() && !playbackStopped) {
 			long timeBeforePlay = System.currentTimeMillis();
 			player.start();
 			long timeAfterPlay = System.currentTimeMillis();
-			Log.d("audio log", "Play delay: " + Long.valueOf(timeAfterPlay-timeBeforePlay).toString());
+			long difference = timeAfterPlay-timeBeforePlay;
+			Log.d("audio log", "Play delay: " + Long.valueOf(difference).toString());
+			return difference;
+		}
+		else
+		{
+			return 0;
+	
+		}
+	}
+	public void iterativePlay(){
+		long delay = play();
+		if (delay>0){
+			Log.d("audio log", "in iterative seek to loop");
+			iterativeSeekTo(getCurrentPosition()+(int)delay);			
 		}
 	}
 
@@ -112,12 +135,31 @@ public class AudioService extends Service {
 		return player.getDuration()/1000;
 	}
 	
-	public void seekTo(int milliseconds) {
+	public long seekTo(int milliseconds) {
 		if (!playbackStopped) {
+			
 			long timeBeforeSeek = System.currentTimeMillis();
 			player.seekTo(milliseconds);
 			long timeAfterSeek = System.currentTimeMillis();
+			long difference = timeAfterSeek-timeBeforeSeek;
 			Log.d("audio log", "seek delay: " + Long.valueOf(timeAfterSeek-timeBeforeSeek).toString());
+			return difference;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	
+	public void iterativeSeekTo(int milliseconds) {
+		long delay = seekTo(milliseconds);
+		long newdelay = System.currentTimeMillis();
+		if(delay>4)
+		{
+			int intdelay = (int)delay;
+			Log.d("audio log", "in iterative seek to loop:"+Long.valueOf(System.currentTimeMillis()-newdelay).toString());
+			
+			iterativeSeekTo(milliseconds);			
 		}
 	}
 	
