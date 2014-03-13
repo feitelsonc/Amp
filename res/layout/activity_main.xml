@@ -65,17 +65,14 @@
 			    
 			</RelativeLayout>
 	    
-		    <ToggleButton
+		    <Button
 		        android:id="@+id/playPause"
 		        android:layout_width="80dp"
 		        android:layout_height="80dp"
 		        android:layout_marginTop="5dp"
 		        android:layout_above="@id/seekbarAndTimes"
 		        android:layout_centerHorizontal="true"
-				android:background="@drawable/btn_play"
-				android:textOn=""
-				android:textOff=""
-				android:checked="false" />
+				android:background="@drawable/btn_play" />
 		    
 		    <TextView
 				android:id="@+id/songTitle"
