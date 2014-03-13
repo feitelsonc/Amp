@@ -199,7 +199,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		activity.reloadUI();
             		
 
-            		broadcastStopPlayback(i);
+//            		broadcastStopPlayback(i);
             		broadcastSong(i);  
             		
             		// request playback location of file

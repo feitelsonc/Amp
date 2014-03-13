@@ -46,7 +46,7 @@ public class AudioService extends Service {
 			player.start();
 		}
 		catch(Exception e) {
-			Log.d("server log", e.toString());
+			Log.d("audio log", e.toString());
 		}
 	}
 	
@@ -63,7 +63,7 @@ public class AudioService extends Service {
 			player.pause();
 		}
 		catch(Exception e) {
-			Log.d("server log", e.toString());
+			Log.d("audio log", e.toString());
 		}
 	}
 	
@@ -83,7 +83,7 @@ public class AudioService extends Service {
 			long timeBeforePause = System.currentTimeMillis();
 			player.pause();
 			long timeAfterPause = System.currentTimeMillis();
-			Log.d("server log", "Pause delay: " + Long.valueOf(timeAfterPause-timeBeforePause).toString());
+			Log.d("audio log", "Pause delay: " + Long.valueOf(timeAfterPause-timeBeforePause).toString());
 		}
 	}
 	
@@ -92,7 +92,7 @@ public class AudioService extends Service {
 			long timeBeforePlay = System.currentTimeMillis();
 			player.start();
 			long timeAfterPlay = System.currentTimeMillis();
-			Log.d("server log", "Play delay: " + Long.valueOf(timeAfterPlay-timeBeforePlay).toString());
+			Log.d("audio log", "Play delay: " + Long.valueOf(timeAfterPlay-timeBeforePlay).toString());
 		}
 	}
 

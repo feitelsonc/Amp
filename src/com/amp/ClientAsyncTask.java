@@ -194,6 +194,20 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.play();
             	}
             	
+            	else if (packetType[0] == REQUEST_SEEK_TO) {
+                	Log.d("server log", "client requested seek to");
+                	byte[] packet = new byte[5];
+                	packet[0] = SEEK_TO;
+                	byte[] millisecondsArray = new byte[4];
+                	int milliseconds = musicPlayerService.getCurrentPosition();
+                	millisecondsArray = intToByteArray(milliseconds);
+                	for (int i=1; i<5; i++) {
+                		packet[i] = millisecondsArray[i-1];
+                	}
+                	outputStream.write(packet);
+                	Log.d("client log", "sent seek to packet to server");
+            	}
+            	
             	else if (packetType[0] == SEEK_TO) {
             		Log.d("client log", "received seek to message from server");
             		int milliseconds = 0;
