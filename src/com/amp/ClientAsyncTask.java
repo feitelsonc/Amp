@@ -287,7 +287,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	
     	byte[] packet = new byte[songByteLength+8];
     	packet[0] = FILE;
-    	byte[] length = intToByteArray(songByteLength);
+    	byte []length = intToByteArray(songByteLength);
     	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
     	for (int i=1; i<5; i++) {
     		packet[i] = length[i-1];
