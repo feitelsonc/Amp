@@ -210,7 +210,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	
             	else if (packetType[0] == PLAY) {
             		Log.d("server log", "client played");
-            		musicPlayerService.play();
+            		musicPlayerService.iterativePlay();
             		
             		broadcastPlay(i);
             		broadcastSeekTo(i);
@@ -238,7 +238,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
-            		musicPlayerService.seekTo(milliseconds);
+            		musicPlayerService.iterativeSeekTo(milliseconds);
             		
             		broadcastPlay(i);
             		broadcastSeekTo(i);
