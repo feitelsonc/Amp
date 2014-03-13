@@ -114,7 +114,10 @@ public class AudioService extends Service {
 	
 	public void seekTo(int milliseconds) {
 		if (!playbackStopped) {
+			long timeBeforeSeek = System.currentTimeMillis();
 			player.seekTo(milliseconds);
+			long timeAfterSeek = System.currentTimeMillis();
+			Log.d("audio log", "seek delay: " + Long.valueOf(timeAfterSeek-timeBeforeSeek).toString());
 		}
 	}
 	
