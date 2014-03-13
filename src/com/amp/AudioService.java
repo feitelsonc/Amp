@@ -45,7 +45,9 @@ public class AudioService extends Service {
 			player.prepare();
 			player.start();
 		}
-		catch(Exception e) {}
+		catch(Exception e) {
+			Log.d("server log", e.toString());
+		}
 	}
 	
 	public void initializeSongAndPause(Uri uri) {
@@ -61,7 +63,7 @@ public class AudioService extends Service {
 			player.pause();
 		}
 		catch(Exception e) {
-			Log.d("client log", e.toString());
+			Log.d("server log", e.toString());
 		}
 	}
 	
