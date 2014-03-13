@@ -206,7 +206,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
             		Log.d("client log", "received stop playback message from server");
-            		musicPlayerService.stopPlayback();
+            		musicPlayerService.pause();
             	}
             	
             	else {
@@ -289,7 +289,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	packet[0] = FILE;
     	byte []length = intToByteArray(songByteLength);
     	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
-    	
     	for (int i=1; i<5; i++) {
     		packet[i] = length[i-1];
     	}

@@ -193,13 +193,15 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		
             		musicPlayerService.initializeSongAndPause(uri);
             		songUri = musicPlayerService.getCurrentTrackUri();
+            		
             		// update activity UI
             		Log.d("server log", "here3.5");
             		activity.reloadUI();
             		
-            		broadcastStopPlayback(-1);
-            		broadcastSong(i);   
-            		Log.d("server log", "here4");
+
+            		broadcastStopPlayback(i);
+            		broadcastSong(i);  
+            		
             		// request playback location of file
             		messageType[0] = REQUEST_SEEK_TO;
             		outputStream.write(messageType);
@@ -250,7 +252,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
             		Log.d("server log", "client stopped playback");
-            		musicPlayerService.stopPlayback();
+            		musicPlayerService.pause();
             	}
             	
             	else
