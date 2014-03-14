@@ -229,7 +229,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
     			public void onSuccess(){
     				connected = true;
     				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
-    				musicPlayerService.startServer((ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService, MainActivity.this));
+    				musicPlayerService.startServer(MainActivity.this);
 //					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService, MainActivity.this);
 //					server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     			}
@@ -713,21 +713,21 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		
 	}
 	
-	@Override
-	public void onStop(){
-		super.onStop();
-		
-		mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
-
-			@Override
-			public void onFailure(int reason) {
-			}
-
-			@Override
-			public void onSuccess() {	
-			}
-		});
-	}
+//	@Override
+//	public void onStop(){
+//		super.onStop();
+//		
+//		mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
+//
+//			@Override
+//			public void onFailure(int reason) {
+//			}
+//
+//			@Override
+//			public void onSuccess() {	
+//			}
+//		});
+//	}
 	
 	@Override
 	public void onDestroy(){
@@ -744,6 +744,17 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 			stopService(new Intent(this, AudioService.class));
 			unbindToMusicPlayerService();
 		}
+		
+		mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
+
+			@Override
+			public void onFailure(int reason) {
+			}
+
+			@Override
+			public void onSuccess() {	
+			}
+		});
 		
 //		if (client != null) {
 //			client.cancelTask();
@@ -775,7 +786,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 					recursivelyInitializeServerConnection(mManager);
 				}
 				else {
-					musicPlayerService.startClient(new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress(), MainActivity.this));
+					musicPlayerService.startClient(info.groupOwnerAddress.getHostAddress(), MainActivity.this);
 //					client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress(), MainActivity.this);
 //					client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 					servconnection = true;	
