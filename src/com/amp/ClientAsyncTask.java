@@ -13,14 +13,12 @@ import java.util.Calendar;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.Toast;
 
-public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
+public class ClientAsyncTask extends Thread implements Runnable {
 	
 	private static final byte CONNECT = 0x00;
     private static final byte DISCONNECT = 0x01;
@@ -84,7 +82,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     @Override
-    protected Void doInBackground(Void... params) {
+    public void run() {
         try {
         	
             byte[] messageType = new byte[1];
@@ -110,7 +108,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		outputStream.write(messageType);
 //            		outputStream.write(Integer.valueOf(uuid).byteValue());
             		socket.close();
-                    return null;
+//                    return null;
                 }
             	
             	// Reads the first byte of the packet to determine packet type
@@ -263,7 +261,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
         } catch (Exception e) {
         	Log.d("client log", e.toString());
         }
-		return null;
+//		return null;
     }
     
     public void sendPause() {
@@ -376,15 +374,15 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
         return res;
     }
     
-    @Override
-    protected void onPreExecute() {
-//    	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
-    }
-    
-    @Override
-    protected void onPostExecute(Void result) {
-    	Toast.makeText(context, "Client Stopped", Toast.LENGTH_SHORT).show();
-    }
+//    @Override
+//    protected void onPreExecute() {
+////    	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
+//    }
+//    
+//    @Override
+//    protected void onPostExecute(Void result) {
+//    	Toast.makeText(context, "Client Stopped", Toast.LENGTH_SHORT).show();
+//    }
     
     private File createFile(String FileType){
     	String date = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());

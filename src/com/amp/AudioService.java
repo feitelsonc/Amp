@@ -39,7 +39,8 @@ public class AudioService extends Service {
 	
 	public void startServer(MainActivity activity) {
 		this.server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), this, activity);
-		this.server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+//		this.server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+		this.server.start();
 	}
 	
 	public void serverBroadcastPause() {
@@ -68,7 +69,8 @@ public class AudioService extends Service {
 	
 	public void startClient(String address, MainActivity activity) {
 		this.client = new ClientAsyncTask(getApplicationContext(), this, address, activity);
-		this.client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+//		this.client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+		this.client.start();
 	}
 	
 	public void clientSendPause() {

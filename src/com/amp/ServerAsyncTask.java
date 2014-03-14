@@ -20,7 +20,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
-public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
+public class ServerAsyncTask extends Thread implements Runnable {
 	
 	private static final byte CONNECT = 0x00;
     private static final byte DISCONNECT = 0x01;
@@ -85,7 +85,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     @Override
-    protected Void doInBackground(Void... params) {
+    public void run() {
         try {
         	
             byte[] messageType = new byte[1];
@@ -116,7 +116,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		for (int i2=0; i2<numClients; i2++) {
             			dictionary.get(Integer.valueOf(i2)).close();          			
             		}
-                    return null;
+//                    return null;
                 }
 
             	// Reads the first byte of the packet to determine packet type
@@ -286,7 +286,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         }} catch (Exception e) {
         	Log.d("server log", e.toString());
         }
-		return null;
+//		return null;
     }
     
     public void broadcastPause(int clientOriginator) {
@@ -386,15 +386,15 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 		return f;
     }
     
-    @Override
-    protected void onPreExecute() {
-//    	Toast.makeText(context, "Server Started", Toast.LENGTH_SHORT).show();
-    }
-    
-    @Override
-    protected void onPostExecute(Void result) {
-    	Toast.makeText(context, "Server Stopped", Toast.LENGTH_SHORT).show();
-    }
+//    @Override
+//    protected void onPreExecute() {
+////    	Toast.makeText(context, "Server Started", Toast.LENGTH_SHORT).show();
+//    }
+//    
+//    @Override
+//    protected void onPostExecute(Void result) {
+//    	Toast.makeText(context, "Server Stopped", Toast.LENGTH_SHORT).show();
+//    }
     
     private void sendToClients(byte[] packet, int clientOriginator) {
     	long timeBeforeSendToClients = System.currentTimeMillis();
