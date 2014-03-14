@@ -631,12 +631,12 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 			musicPlayerService.seekTo(musicProgress.getProgress()*1000);
 			if (masterMode) {
 //			if (masterMode && server != null) {
-				musicPlayerService.serverBroadcastSeekTo();
+				musicPlayerService.serverBroadcastRequestRequestSeekTo();
 //    			server.broadcastSeekTo(-1);
     		}
 			else {
 //        	else if (!masterMode && client != null) {
-				musicPlayerService.clientSendSeekTo();
+				musicPlayerService.clientSendRequestRequestSeekTo();
 //    			client.sendSeekTo();
     		}
 		}

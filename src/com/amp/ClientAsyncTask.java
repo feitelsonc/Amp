@@ -307,6 +307,18 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     		}
     }
     
+    public void sendRequestRequestSeekTo() {
+		long timeBeginningReqReqSeekTo = System.currentTimeMillis();
+    	byte[] packet = new byte[1];
+    	packet[0] = REQUEST_REQUEST_SEEK_TO;
+    	try {
+			outputStream.write(packet);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    	Log.d("total delay log", "broadcasted request request seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningReqReqSeekTo).toString());
+}
+    
     public void sendDelayRequest() {
     	timeDelay = System.currentTimeMillis();
     	byte[] messageType = new byte[1];

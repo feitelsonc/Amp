@@ -66,6 +66,12 @@ public class AudioService extends Service {
 		}
 	}
 	
+	public void serverBroadcastRequestRequestSeekTo() {
+		if (server != null) {
+			this.server.broadcastRequestRequestSeekTo(-1);
+		}
+	}
+	
 	public void startClient(String address, MainActivity activity) {
 		this.client = new ClientAsyncTask(getApplicationContext(), this, address, activity);
 		this.client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -94,6 +100,13 @@ public class AudioService extends Service {
 			this.client.sendSeekTo();
 		}
 	}
+	
+	public void clientSendRequestRequestSeekTo() {
+		if (client != null) {
+			this.client.sendRequestRequestSeekTo();
+		}
+	}
+	
 	
 	public void disconnectClient() {
 		if (this.client != null) {
