@@ -84,10 +84,19 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
     private ServerAsyncTask server = null;
     private ClientAsyncTask client = null;
     private AtomicBoolean reloadUI = new AtomicBoolean(false);
+    private AtomicBoolean showSpinner = new AtomicBoolean(false);
     private URIManager uriManager;
     
     public void reloadUI() {
     	reloadUI.set(true);
+    }
+    
+    public void showSpinner() {
+    	showSpinner.set(true);
+    }
+    
+    public void hideSpinner() {
+    	showSpinner.set(false);
     }
 
 	@Override
@@ -503,11 +512,17 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 	    			@Override
 	    			public void run() {
 	    				
-	    				if (!musicPlayerService.isPlaying()) {
-	    		        	playPause.setBackgroundResource(R.drawable.btn_play);
+	    				if (showSpinner.get() == true) {
+    						viewSwitcher.setDisplayedChild(2);
 	    				}
-	    				else {
-	    					playPause.setBackgroundResource(R.drawable.btn_pause);
+	    				
+	    				if (musicPlayerService != null) {
+	    					if (!musicPlayerService.isPlaying()) {
+		    		        	playPause.setBackgroundResource(R.drawable.btn_play);
+		    				}
+		    				else {
+		    					playPause.setBackgroundResource(R.drawable.btn_pause);
+		    				}
 	    				}
 	    				
 	    				if (!groupInfoChanged) {
@@ -535,6 +550,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		    						setPositionTrackerWidgets();
 		    						if (reloadUI.get() == true) {
 		    							selectedSongUriString = musicPlayerService.getCurrentTrackUri().toString();
+		    							if (viewSwitcher.getDisplayedChild() == 1 || viewSwitcher.getDisplayedChild() == 2) {
+		        							viewSwitcher.setDisplayedChild(0);
+		        						}
 		    							setupWidgets(selectedSongUriString);
 		    							Log.d("ui log", "reloaded UI");
 		    						}
@@ -656,10 +674,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
         						connected = true;
         						invalidateOptionsMenu();
         						recursivelyInitializeServerConnection(mManager);
-        						
-        						if (viewSwitcher.getDisplayedChild() == 1) {
-        							viewSwitcher.setDisplayedChild(0);
-        						}
         					}	
         						
     	
