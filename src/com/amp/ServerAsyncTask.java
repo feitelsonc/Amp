@@ -245,9 +245,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.iterativeSeekTo(milliseconds);
             		
             		broadcastPlay(i);
-            		for (int a=0; a<3; i++) {
-            			broadcastSeekTo(i);
-            		}
+            		broadcastSeekTo(i);
+            		
             	}
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
@@ -275,15 +274,16 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void broadcastPlay(int clientOriginator) {
+    	long timeBeforePause = System.currentTimeMillis();
     	byte[] messageType = new byte[1];
     	messageType[0] = PLAY;
     	sendToClients(messageType, clientOriginator);
     	Log.d("server log", "broadcasted play");
     	broadcastSeekTo(clientOriginator);
+    	Log.d("server log", "broadcast play method, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
     }
     
     public void broadcastSeekTo(int clientOriginator) {
-    	for (int a=0; a<3; a++) {
     		long timeBeforePause = System.currentTimeMillis();
         	byte[] packet = new byte[5];
         	packet[0] = SEEK_TO;
@@ -294,8 +294,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         		packet[i] = millisecondsArray[i-1];
         	}
         	sendToClients(packet, clientOriginator);
-        	Log.d("server log", "broadcasted seek to, propagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
-    	}
+        	Log.d("server log", "broadcasted seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
     }
     
     public void broadcastStopPlayback(int clientOriginator) {
