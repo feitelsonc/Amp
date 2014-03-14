@@ -369,7 +369,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 
 	    if(resultCode == RESULT_OK){
 	    	
-	    	if (viewSwitcher.getDisplayedChild() == 1) {
+	    	if (viewSwitcher.getDisplayedChild() == 1 || viewSwitcher.getDisplayedChild() == 2) {
 				viewSwitcher.setDisplayedChild(0);
 			}
 
