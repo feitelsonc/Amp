@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
@@ -16,6 +17,8 @@ public class AudioService extends Service {
 	static private boolean serviceStarted = false;
 	static private boolean playbackStopped = false;
 	private Uri currentSongUri;
+	private ServerAsyncTask server = null;
+    private ClientAsyncTask client = null;
 	
 	static public boolean isServiceStarted() {
 		return serviceStarted;
@@ -31,6 +34,74 @@ public class AudioService extends Service {
 		public AudioService getService() {
 			// Return this instance of LocalService so clients can call public methods
 			return AudioService.this;
+		}
+	}
+	
+	public void startServer(ServerAsyncTask server) {
+		this.server = server;
+		this.server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+	}
+	
+	public void serverBroadcastPause() {
+		if (server != null) {
+			this.server.broadcastPause(-1);
+		}
+	}
+	
+	public void serverBroadcastSong() {
+		if (server != null) {
+			this.server.broadcastSong(-1);
+		}
+	}
+	
+	public void serverBroadcastPlay()  {
+		if (server != null) {
+			this.server.broadcastPlay(-1);
+		}
+	}
+	
+	public void serverBroadcastSeekTo() {
+		if (server != null) {
+			this.server.broadcastSeekTo(-1);
+		}
+	}
+	
+	public void startClient(ClientAsyncTask client) {
+		this.client = client;
+		this.client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+	}
+	
+	public void clientSendPause() {
+		if (client != null) {
+			this.client.sendPause();
+		}
+	}
+	
+	public void clientSendPlay() {
+		if (client != null) {
+			this.client.sendPlay();
+		}
+	}
+	
+	public void clientSendSong() {
+		if (client != null) {
+			this.client.sendSong();
+		}
+	}
+	
+	public void clientSendSeekTo() {
+		if (client != null) {
+			this.client.sendSeekTo();
+		}
+	}
+	
+	public void cancelServerAndClientTasks() {
+		if (this.client != null) {
+			this.client.cancelTask();
+		}
+		
+		if (this.server != null) {
+			this.server.cancelTask();
 		}
 	}
 	

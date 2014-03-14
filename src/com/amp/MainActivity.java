@@ -28,7 +28,6 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.ActionListener;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.net.wifi.p2p.WifiP2pManager.PeerListListener;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -81,8 +80,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
     protected PeerListListener myPeerListListener;
     private ArrayList <WifiP2pDevice> devices = new ArrayList<WifiP2pDevice>();
     private String currentGroupAddress;
-    private ServerAsyncTask server = null;
-    private ClientAsyncTask client = null;
+//    private ServerAsyncTask server = null;
+//    private ClientAsyncTask client = null;
     private AtomicBoolean reloadUI = new AtomicBoolean(false);
     private AtomicBoolean showSpinner = new AtomicBoolean(false);
     private URIManager uriManager;
@@ -125,11 +124,15 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		        	playPause.setBackgroundResource(R.drawable.btn_play);
 		        	musicPlayerService.pause();
 	        		
-	        		if (masterMode && server != null) {
-	        			server.broadcastPause(-1);
+		        	if (masterMode) {
+//	        		if (masterMode && server != null) {
+	        			musicPlayerService.serverBroadcastPause();
+//	        			server.broadcastPause(-1);
 	        		}
-	        		else if (!masterMode && client != null) {
-	        			client.sendPause();
+		        	else {
+//	        		else if (!masterMode && client != null) {
+	        			musicPlayerService.clientSendPause();
+//	        			client.sendPause();
 	        		}
 		        }
 		        else {
@@ -137,11 +140,14 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 //		        	musicPlayerService.iterativePlay();
 		        	musicPlayerService.play();
 		        	
-		        	if (masterMode && server != null) {
-	        			server.broadcastPlay(-1);
+		        	if (masterMode) {
+//		        	if (masterMode && server != null) {
+		        		musicPlayerService.serverBroadcastPlay();
+//	        			server.broadcastPlay(-1);
 	        		}
-		        	else if (!masterMode && client != null) {
-	        			client.sendPlay();
+		        	else  {
+//		        	else if (!masterMode && client != null) {
+		        		musicPlayerService.clientSendPlay();
 	        		}
 		        }
 		    }
@@ -223,8 +229,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
     			public void onSuccess(){
     				connected = true;
     				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
-					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService, MainActivity.this);
-					server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+    				musicPlayerService.startServer((ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService, MainActivity.this));
+//					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService, MainActivity.this);
+//					server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     			}
     			
     			@Override
@@ -333,9 +340,11 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	    			@Override
 	    			public void onSuccess() {
 	    				
-	    				if (client != null) {
-	    					client.cancelTask();
-	    				}
+	    				//TODO: PROPERLY HANDLE LEAVING GROUP
+	    				
+//	    				if (client != null) {
+//	    					client.cancelTask();
+//	    				}
 	    				
 	    				connected = false;
 	    				Toast.makeText(getApplicationContext(), "Exited Group", Toast.LENGTH_SHORT).show();
@@ -369,11 +378,15 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	    	selectedSongUriString = selectedSongUri.toString();
 	    	musicPlayerService.initializeSong(selectedSongUri);
 	    	
-	    	if (masterMode && server != null) {
-    			server.broadcastSong(-1);
+	    	if (masterMode) {
+//	    	if (masterMode && server != null) {
+	    		musicPlayerService.serverBroadcastSong();
+//    			server.broadcastSong(-1);
     		}
-    		else if (!masterMode && client != null) {
-    			client.sendSong();
+	    	else {
+//    		else if (!masterMode && client != null) {
+	    		musicPlayerService.clientSendSong();
+//    			client.sendSong();
     		}
 	    	
 	    	setupWidgets(selectedSongUriString);
@@ -616,11 +629,15 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		if (musicPlayerService != null && musicPlayerService.isPlaying()) {
 			
 			musicPlayerService.seekTo(musicProgress.getProgress()*1000);
-			if (masterMode && server != null) {
-    			server.broadcastSeekTo(-1);
+			if (masterMode) {
+//			if (masterMode && server != null) {
+				musicPlayerService.serverBroadcastSeekTo();
+//    			server.broadcastSeekTo(-1);
     		}
-        	else if (!masterMode && client != null) {
-    			client.sendSeekTo();
+			else {
+//        	else if (!masterMode && client != null) {
+				musicPlayerService.clientSendSeekTo();
+//    			client.sendSeekTo();
     		}
 		}
 	}
@@ -722,18 +739,19 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		}
 		
 		if (AudioService.isServiceStarted()) {
+			musicPlayerService.cancelServerAndClientTasks();
 			musicPlayerService.releasePlayer();
 			stopService(new Intent(this, AudioService.class));
 			unbindToMusicPlayerService();
 		}
 		
-		if (client != null) {
-			client.cancelTask();
-		}
-		
-		if (server != null) {
-			server.cancelTask();
-		}
+//		if (client != null) {
+//			client.cancelTask();
+//		}
+//		
+//		if (server != null) {
+//			server.cancelTask();
+//		}
 		
 		final File f = new File(Environment.getExternalStorageDirectory() + "/" + "Amp" + "/Shared Songs/");
 		deleteRecursively(f);
@@ -757,8 +775,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 					recursivelyInitializeServerConnection(mManager);
 				}
 				else {
-					client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress(), MainActivity.this);
-					client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+					musicPlayerService.startClient(new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress(), MainActivity.this));
+//					client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress(), MainActivity.this);
+//					client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 					servconnection = true;	
 //					Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
 				}
