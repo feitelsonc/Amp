@@ -320,6 +320,14 @@ public class ServerAsyncTask extends Thread implements Runnable {
         	Log.d("total delay log", "broadcasted seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningSeekTo).toString());
     }
     
+    public void broadcastRequestRequestSeekTo(int clientOriginator) {
+		long timeBeginningReqReqSeekTo = System.currentTimeMillis();
+    	byte[] packet = new byte[1];
+    	packet[0] = SEEK_TO;
+    	sendToClients(packet, clientOriginator);
+    	Log.d("total delay log", "broadcasted request request seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningReqReqSeekTo).toString());
+}
+    
     public void broadcastStopPlayback(int clientOriginator) {
     	byte[] messageType = new byte[1];
     	messageType[0] = STOP_PLAYBACK;
