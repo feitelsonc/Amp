@@ -98,7 +98,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             Log.d("client log", "sent connect message to server");
             
             while (true) {
-            	
+            	long timeBeginningLoop = System.currentTimeMillis();
             	if (isTaskCancelled){
             		messageType[0]=DISCONNECT;
             		outputStream.write(messageType);
@@ -214,7 +214,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType[0] == SEEK_TO) {
-            		long timeBeforePause = System.currentTimeMillis();
+            		
             		Log.d("client log", "received seek to message from server");
             		
             		int milliseconds = 0;
@@ -223,7 +223,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
             		musicPlayerService.iterativeSeekTo(milliseconds);
-            		Log.d("client log", "received seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
+            		Log.d("total delay log", "received seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningLoop).toString());
             	}
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
@@ -268,7 +268,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void sendSeekTo() {
-    		long timeBeforePause = System.currentTimeMillis();
+    		long timeBeginningSendSeekTo = System.currentTimeMillis();
         	byte[] packet = new byte[5];
         	packet[0] = Integer.valueOf(SEEK_TO).byteValue();
         	byte[] millisecondsArray = new byte[4];
@@ -279,7 +279,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
         	}
         	try {
     			outputStream.write(packet);
-    			Log.d("client log", "sent seek to message to server. propagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
+    			Log.d("total delay log", "sent seek to message to server. propagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningSendSeekTo).toString());
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
