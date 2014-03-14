@@ -49,7 +49,7 @@ import android.widget.ViewFlipper;
 import com.amp.AudioService.LocalBinder;
 
 
-public class MainActivity extends Activity implements OnSeekBarChangeListener, IPAddressDialog.IPAddressDialogListener {
+public class MainActivity extends Activity implements OnSeekBarChangeListener, GroupAddressDialog.GroupAddressDialogListener {
 	
 	static final String SELECTED_SONG = "selectedSong";
 	private static final int SELECT_SONG = 1;
@@ -627,7 +627,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 
 	public void showDialog() {
         // Create an instance of the dialog fragment and show it
-        DialogFragment dialog = new IPAddressDialog();
+        DialogFragment dialog = new GroupAddressDialog();
         dialog.show(getFragmentManager(), "ConnectDialog");
     }
 	
