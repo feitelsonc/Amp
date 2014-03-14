@@ -92,6 +92,7 @@ public class AudioService extends Service {
 			long timeBeforePlay = System.currentTimeMillis();
 			player.start();
 			long timeAfterPlay = System.currentTimeMillis();
+			iterativeSeekTo(player.getCurrentPosition()+(int)(timeAfterPlay-timeBeforePlay));
 			Log.d("audio log", "Play delay: " + Long.valueOf(timeAfterPlay-timeBeforePlay).toString());
 		}
 	}

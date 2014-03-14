@@ -114,10 +114,10 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	inputstream.readFully(packetType, 0, 1);
             	long timeBeginningLoop = System.currentTimeMillis();
             	
-            	if (packetType[0] == DELAY_RESPONSE)
-            	{
+            	if (packetType[0] == DELAY_RESPONSE) {
+            		Log.d("client log", "received delay response message from server");
             		timeDelay = (System.currentTimeMillis()-timeDelay)/2;
-            		Log.d("total delay", "requested prop delay: "+ Long.valueOf(timeDelay).toString());
+            		Log.d("total delay log", "prop delay: "+ Long.valueOf(timeDelay).toString());
             	}
             	
             	else if (packetType[0] == SEEK_TO) {
@@ -130,7 +130,8 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
             		long delay = System.currentTimeMillis()-timeBeginningLoop;
-            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
+//            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
+            		musicPlayerService.seekTo(milliseconds);
             		Log.d("total delay log", "received seek to, delay: "+Long.valueOf(delay).toString());
             	}
             	
@@ -278,7 +279,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void sendSeekTo() {
-    		
         	byte[] packet = new byte[5];
         	packet[0] = Integer.valueOf(SEEK_TO).byteValue();
         	byte[] millisecondsArray = new byte[4];
@@ -302,6 +302,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	messageType[0]=DELAY_REQUEST;
     	try {
 			outputStream.write(messageType);
+			Log.d("client log", "sent delay request message to server");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

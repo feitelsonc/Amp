@@ -133,7 +133,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
             		long delay = System.currentTimeMillis()-timeBeginningLoop;
-            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
+//            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
+            		musicPlayerService.seekTo(milliseconds);
             		broadcastSeekTo(i);
             		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
             	}
