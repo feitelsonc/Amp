@@ -123,7 +123,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             	
             	else if (packetType[0] == SEEK_TO) {
             		seekToDelay = System.currentTimeMillis()-timeBeforeRequestSeekTo;
-            		Log.d("server log", "received seek to packet. seekToDelay: " + Long.valueOf(seekToDelay).toString());
+            		Log.d("client log", "received seek to packet. seekToDelay: " + Long.valueOf(seekToDelay).toString());
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];
             		inputstream.readFully(millisecondsArray, 0, 4);
