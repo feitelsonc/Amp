@@ -87,34 +87,13 @@ public class AudioService extends Service {
 		}
 	}
 	
-//	public void play() {
-//		if (!player.isPlaying() && !playbackStopped) {
-//			long timeBeforePlay = System.currentTimeMillis();
-//			player.start();
-//			long timeAfterPlay = System.currentTimeMillis();
-//			Log.d("audio log", "Play delay: " + Long.valueOf(timeAfterPlay-timeBeforePlay).toString());
-//		}
-//	}
-	
-	public long play() {
+	public void play() {
 		if (!player.isPlaying() && !playbackStopped) {
 			long timeBeforePlay = System.currentTimeMillis();
 			player.start();
 			long timeAfterPlay = System.currentTimeMillis();
-			long difference = timeAfterPlay-timeBeforePlay;
-			Log.d("audio log", "Play delay: " + Long.valueOf(difference).toString());
-			return difference;
+			Log.d("audio log", "Play delay: " + Long.valueOf(timeAfterPlay-timeBeforePlay).toString());
 		}
-		else
-		{
-			return 0;
-	
-		}
-	}
-	public void iterativePlay(){
-		int milliseconds = getCurrentPosition(); 
-		long delay = play();
-		iterativeSeekTo(milliseconds,delay);			
 	}
 
 	public boolean isPlaying() {
@@ -148,65 +127,13 @@ public class AudioService extends Service {
 			return 0;
 		}
 	}
-	
-	/*
-	 * ITERATIVE SEEKTO VERSION 1
-	 * 
-	 * public void iterativeSeekTo(int milliseconds) {
-		long delay = seekTo(milliseconds);
-		long newdelay = System.currentTimeMillis();
-		if(delay>4)
-		{
-			int intdelay = (int)delay;
-			Log.d("audio log", "in iterative seek to loop:"+Long.valueOf(System.currentTimeMillis()-newdelay).toString());
-			
-			iterativeSeekTo(milliseconds);			
-		}
-	}*/
-	
-	/* ITERATIVE SEEKTO VERSION 2
-	 * 
-	 
-	public void iterativeSeekTo(int milliseconds,int delay) {
-		long timeBeforeSeek = System.currentTimeMillis();
-		player.seekTo(milliseconds);
-		long timeAfterSeek = System.currentTimeMillis();
-		long difference = timeAfterSeek-timeBeforeSeek;
-		//Log.d("audio log", "seek delay: " + Long.valueOf(timeAfterSeek-timeBeforeSeek).toString());
-		//return difference;
-		long delay = seekTo(milliseconds);
-		/*IN CHECKING THE DELAY OF THE IF LOOP REQUIRED FOR RECURSION, FOUND MOSTLY 0 DELAY EVEN FOR SLOW PHONES, NOT NEGLIGIBLE OVER MANY CALLS, THUS
-		 * WE TRY TO MINIMIZE CALLS WITH ERROR PREDICITON.
-		 */
-		/*long newdelay = System.currentTimeMillis();
-		if(delay>4)
-		{
-			int intdelay = (int)delay;
-			//Log.d("audio log", "in iterative seek to loop:"+Long.valueOf(System.currentTimeMillis()-newdelay).toString());
-			
-			iterativeSeekTo(milliseconds,intdelay);			
-		}
-	}
-*/	
-	
+
+
 	public void iterativeSeekTo(int milliseconds) {
 		long difference = System.currentTimeMillis();
 		player.seekTo(milliseconds);
 		difference = System.currentTimeMillis()-difference;
-		/*try {
-			Thread.sleep(500-difference);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		player.seekTo(milliseconds+500);*/
-		//Log.d("audio log", "seek delay: " + Long.valueOf(timeAfterSeek-timeBeforeSeek).toString());
-		//return difference;
-		/*IN CHECKING THE DELAY OF THE IF LOOP REQUIRED FOR RECURSION, FOUND MOSTLY 0 DELAY EVEN FOR SLOW PHONES, NOT NEGLIGIBLE OVER MANY CALLS, THUS
-		 * WE TRY TO MINIMIZE CALLS WITH ERROR PREDICITON.
-		 */
-		//long newdelay = System.currentTimeMillis();
-		iterativeSeekTo(milliseconds,difference);					
+		iterativeSeekTo(milliseconds, difference);					
 	}
 	
 	public void iterativeSeekTo(int milliseconds,long delay) {

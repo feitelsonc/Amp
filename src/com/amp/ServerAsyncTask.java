@@ -217,7 +217,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.play();
             		
             		broadcastPlay(i);
-            		broadcastSeekTo(i);
+//            		broadcastSeekTo(-1); //test
             	}
             	
             	else if (packetType[0] == REQUEST_SEEK_TO) {
@@ -245,8 +245,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.play();
             		musicPlayerService.iterativeSeekTo(milliseconds);
             		
-            		broadcastPlay(i);
-            		broadcastSeekTo(i);
+//            		broadcastPlay(i);
+            		broadcastSeekTo(-1); // test
             	}
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
@@ -372,6 +372,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     private void sendToClients(byte[] packet, int clientOriginator) {
+    	long timeBeforeSendToClients = System.currentTimeMillis();
     	OutputStream outputStream;
     	for (int i=0; i<numClients; i++) {
     		if (i == clientOriginator) {
@@ -381,6 +382,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     			if (dictionary.containsKey(Integer.valueOf(i).toString())) {
     				outputStream = dictionary.get(Integer.valueOf(i).toString()).getOutputStream();
         			outputStream.write(packet);
+        			long timeAfterSendToClients = System.currentTimeMillis();
+        			Log.d("server log", "delay of sendToClients: " + Long.valueOf(timeAfterSendToClients-timeBeforeSendToClients).toString());
         			
     			}
     		} catch (IOException e) {
