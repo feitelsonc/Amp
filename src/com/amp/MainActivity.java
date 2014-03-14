@@ -134,7 +134,8 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        }
 		        else {
 		        	playPause.setBackgroundResource(R.drawable.btn_pause);
-		        	musicPlayerService.iterativePlay();
+//		        	musicPlayerService.iterativePlay();
+		        	musicPlayerService.play();
 		        	
 		        	if (masterMode && server != null) {
 	        			server.broadcastPlay(-1);
