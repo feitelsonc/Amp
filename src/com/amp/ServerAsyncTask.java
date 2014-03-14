@@ -214,6 +214,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
 	            	}
 	
 	            	else if (packetType[0] == FILE) {
+	            		musicPlayerService.stopPlayback();
 	            		Log.d("server log", "received song from client");
 	            		activity.showSpinner();
 	
@@ -234,6 +235,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
 	            		
 	            		activity.hideSpinner();
 	            		
+	            		musicPlayerService.allowPlayback();
 	            		musicPlayerService.initializeSongAndPause(uri);
 	            		songUri = musicPlayerService.getCurrentTrackUri();
 	            		
