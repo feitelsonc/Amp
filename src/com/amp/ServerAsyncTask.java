@@ -146,8 +146,8 @@ public class ServerAsyncTask extends Thread implements Runnable {
 	            		inputstream.readFully(millisecondsArray, 0, 4);
 	            		milliseconds = byteArrayToInt(millisecondsArray);
 	            		long delay = System.currentTimeMillis()-timeBeginningLoop;
-	            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
-//	            		musicPlayerService.seekTo(milliseconds);
+//	            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
+	            		musicPlayerService.seekTo(milliseconds);
 	            		broadcastSeekTo(i);
 	            		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
 	            	}
