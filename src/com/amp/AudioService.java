@@ -37,8 +37,8 @@ public class AudioService extends Service {
 		}
 	}
 	
-	public void startServer(ServerAsyncTask server) {
-		this.server = server;
+	public void startServer(MainActivity activity) {
+		this.server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), this, activity);
 		this.server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 	}
 	
@@ -66,8 +66,8 @@ public class AudioService extends Service {
 		}
 	}
 	
-	public void startClient(ClientAsyncTask client) {
-		this.client = client;
+	public void startClient(String address, MainActivity activity) {
+		this.client = new ClientAsyncTask(getApplicationContext(), this, address, activity);
 		this.client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 	}
 	
