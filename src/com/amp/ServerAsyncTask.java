@@ -93,7 +93,6 @@ public class ServerAsyncTask extends Thread implements Runnable {
         	clientAcceptor.start();
 
         	while (true) {
-	        	long timeBeginningLoop = System.currentTimeMillis();
 	        	DataInputStream inputstream;
 	        	OutputStream outputStream;
 	        	for (int i=0; i<numClients; i++) {
@@ -145,11 +144,20 @@ public class ServerAsyncTask extends Thread implements Runnable {
 	            		byte[] millisecondsArray = new byte [4];
 	            		inputstream.readFully(millisecondsArray, 0, 4);
 	            		milliseconds = byteArrayToInt(millisecondsArray);
-	            		long delay = System.currentTimeMillis()-timeBeginningLoop;
-//	            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
-	            		musicPlayerService.seekTo(milliseconds);
-	            		broadcastSeekTo(i);
-	            		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
+	            //		musicPlayerService.iterativeSeekTo(milliseconds);
+	            		if(seekToPropagationDelay<5)
+	            		{
+	            			musicPlayerService.iterativeSeekTo(milliseconds+(int)seekToPropagationDelay/2);
+	            			broadcastSeekTo(i);
+		            		Log.d("total delay log", "received seek to");
+	            		}
+	            		else
+	            		{
+	            			timeBeforeRequestSeekTo = System.currentTimeMillis() ;
+	            			messageType[0] = ANTICIPATE_SEEK_TO;
+	            			outputStream.write(messageType);
+	            		}
+	            		
 	            	}
 	            	
 	            	else if (packetType[0] == ANTICIPATE_SEEK_TO) {
