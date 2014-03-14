@@ -103,7 +103,6 @@ public class AudioService extends Service {
 			long timeAfterPlay = System.currentTimeMillis();
 			long difference = timeAfterPlay-timeBeforePlay;
 			Log.d("audio log", "Play delay: " + Long.valueOf(difference).toString());
-			difference = System.currentTimeMillis()-timeBeforePlay;
 			return difference;
 		}
 		else
@@ -115,10 +114,7 @@ public class AudioService extends Service {
 	public void iterativePlay(){
 		int milliseconds = getCurrentPosition(); 
 		long delay = play();
-		if (delay>5){
-			//Log.d("audio log", "in iterative seek to loop");
-			iterativeSeekTo(milliseconds,delay);			
-		}
+		iterativeSeekTo(milliseconds,delay);			
 	}
 
 	public boolean isPlaying() {

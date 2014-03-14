@@ -229,8 +229,9 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
                 	for (int i3=1; i3<5; i3++) {
                 		packet[i3] = millisecondsArray[i3-1];
                 	}
+                	long timeBeforePause = System.currentTimeMillis();
                 	outputStream.write(packet);
-                	Log.d("server log", "sent seek to packet to client");
+                	Log.d("server log", "sent seek to packet to client, round trip propagation delay:" + Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
                 	
             	}
             	
@@ -279,6 +280,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void broadcastSeekTo(int clientOriginator) {
+    	long timeBeforePause = System.currentTimeMillis();
     	byte[] packet = new byte[5];
     	packet[0] = SEEK_TO;
     	byte[] millisecondsArray = new byte[4];
@@ -288,7 +290,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     		packet[i] = millisecondsArray[i-1];
     	}
     	sendToClients(packet, clientOriginator);
-    	Log.d("server log", "broadcasted seek to");
+    	Log.d("server log", "broadcasted seek to, propagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
     }
     
     public void broadcastStopPlayback(int clientOriginator) {
