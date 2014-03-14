@@ -236,17 +236,15 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType[0] == SEEK_TO) {
+            		long timeBeforePause = System.currentTimeMillis();
             		Log.d("server log", "client changes seek pos");
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
-            		musicPlayerService.play();
             		musicPlayerService.iterativeSeekTo(milliseconds);
-            		
-            		broadcastPlay(i);
             		broadcastSeekTo(i);
-            		
+            		Log.d("server log", "received seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
             	}
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
