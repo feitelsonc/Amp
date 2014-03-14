@@ -162,7 +162,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
                 	outputStream.write(length,0,length.length);
                 	
                 	outputStream.write(fileExtension,0,fileExtension.length);
-                	
+                	Log.d("server log", "before sent file message to server");
                 	outputStream.write(songByteArray,0,songByteArray.length);
                 	Log.d("server log", "sent file packet to client");
                 	
