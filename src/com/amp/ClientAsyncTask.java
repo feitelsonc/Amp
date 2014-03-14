@@ -270,7 +270,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void sendSeekTo() {
-    		long timeBeginningSendSeekTo = System.currentTimeMillis();
         	byte[] packet = new byte[5];
         	packet[0] = Integer.valueOf(SEEK_TO).byteValue();
         	byte[] millisecondsArray = new byte[4];
@@ -281,7 +280,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
         	}
         	try {
     			outputStream.write(packet);
-    			Log.d("total delay log", "sent seek to message to server. propagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningSendSeekTo).toString());
+    			Log.d("client log", "sent seek to message to server");
     		} catch (IOException e) {
     			e.printStackTrace();
     		}

@@ -45,6 +45,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private boolean isTaskCancelled = false;
     private ServerSocket serverSocket;
     private ClientAccepter clientAcceptor = null;
+    private TimeKeeper timeKeeper = null;
     private URIManager uriManager;
     
     public ServerAsyncTask(Context context, AudioService musicPlayerService, MainActivity activity) {
@@ -87,6 +88,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
         	
         	clientAcceptor = new ClientAccepter();
         	clientAcceptor.start();
+        	timeKeeper = new TimeKeeper();
+        	timeKeeper.start();
         	while (true) {
         	long timeBeginningLoop = System.currentTimeMillis();
         	DataInputStream inputstream;
@@ -433,6 +436,53 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 					dictionary.put(Integer.valueOf(numClients).toString(), client);
 
 					numClients++;
+				} catch (Exception e) {
+					Log.d("server log","This is an error of type: "+e.toString());
+				}
+     		}
+    	}
+    	
+    	public void stopAcceptor() {
+    		canceled = true;
+    	}
+	}
+    
+    private class TimeKeeper extends Thread {
+    	TimeKeeperRunnable runnable = null;
+    	
+    	public TimeKeeper() {
+    		this(new TimeKeeperRunnable());
+     	}
+    	
+    	private TimeKeeper(TimeKeeperRunnable runnable) {
+    		super(runnable, "client_acceptor");
+    		this.runnable = runnable;
+    	}
+    	
+    	public void stopAccepter() {
+    		runnable.stopAcceptor();
+    	}
+    }
+    
+    private class TimeKeeperRunnable implements Runnable {
+	   	private final int TICKER_TIME = 1500;
+    	
+    	private boolean canceled = false; 
+ 
+    	@Override
+    	public void run() {
+     		
+     		while(!canceled) {
+	    		try {
+	    			Thread.sleep(TICKER_TIME);
+	    		} catch (Exception e) {
+	    			return;
+	    		}
+	    		
+	    		try {
+	    			if (musicPlayerService.isPlaying()) {
+	    				broadcastSeekTo(-1);
+	    			}
 				} catch (Exception e) {
 					Log.d("server log","This is an error of type: "+e.toString());
 				}
