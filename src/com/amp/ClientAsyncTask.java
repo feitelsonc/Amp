@@ -45,7 +45,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
     private boolean isTaskCancelled = false;
     private URIManager uriManager;
     private long timeBeforeRequestSeekTo = 0;
-	private long seekToDelay = 0;
+	private long seekToPropagationDelay = 0;
     
     
     public ClientAsyncTask(Context context, AudioService musicPlayerService, String host, MainActivity activity) {
@@ -109,8 +109,8 @@ public class ClientAsyncTask extends Thread implements Runnable {
             	long timeBeginningLoop = System.currentTimeMillis();
             	
             	if (packetType[0] == SEEK_TO) {
-            		seekToDelay = System.currentTimeMillis()-timeBeforeRequestSeekTo;
-            		Log.d("client log", "received seek to packet. seekToDelay: " + Long.valueOf(seekToDelay).toString());
+            		seekToPropagationDelay = System.currentTimeMillis()-timeBeforeRequestSeekTo;
+            		Log.d("client log", "received seek to packet. seekToPropagationDelay: " + Long.valueOf(seekToPropagationDelay).toString());
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];
             		inputstream.readFully(millisecondsArray, 0, 4);
