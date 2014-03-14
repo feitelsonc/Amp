@@ -80,7 +80,8 @@ public class ClientAsyncTask extends Thread implements Runnable {
     @Override
     public void run() {
         try {
-        	
+        
+	
             byte[] messageType = new byte[1];
             byte[] packetType = new byte[1];
             
@@ -100,7 +101,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
             	if (isTaskCancelled){
             		messageType[0]=DISCONNECT;
             		outputStream.write(messageType);
-//            		outputStream.write(Integer.valueOf(uuid).byteValue());
             		socket.close();
                 }
             	
@@ -115,19 +115,11 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		byte[] millisecondsArray = new byte [4];
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
-            		
-            		if(seekToPropagationDelay<5)
-            		{
-            			musicPlayerService.iterativeSeekTo(milliseconds+(int)seekToPropagationDelay/2);
-	            		Log.d("total delay log", "received seek to");
-            		}
-            		else
-            		{
-            			timeBeforeRequestSeekTo = System.currentTimeMillis() ;
-            			messageType[0] = ANTICIPATE_SEEK_TO;
-            			outputStream.write(messageType);
-            		}
-            		Log.d("total delay log", "received seek to");
+//            		musicPlayerService.play();
+            		long delay = System.currentTimeMillis()-timeBeginningLoop;
+//            		musicPlayerService.iterativeSeekTo(milliseconds);
+            		musicPlayerService.seekTo(milliseconds);
+             		Log.d("total delay log", "received seek to, delay: "+Long.valueOf(delay).toString());
             	}
             	
             	else if (packetType[0] == REQUEST_SEEK_TO) {
@@ -197,6 +189,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		inputstream.readFully(length, 0, 4);
             		int fileLength = byteArrayToInt(length);
             		byte[] fileExtension = new byte[3];
+            
             		inputstream.readFully(fileExtension, 0, 3);
             		
             		String filetype = new String(fileExtension);
@@ -212,6 +205,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		
             		FileOutputStream fileoutputstream = new FileOutputStream(file);
 
+            	
             		fileoutputstream.write(songByteArray);
             		fileoutputstream.close();
             		
@@ -246,6 +240,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		musicPlayerService.pause();
             	}
             	
+            
             	else {
             		Log.d("client log", "invalid packet type received");
             	}
@@ -341,7 +336,8 @@ public class ClientAsyncTask extends Thread implements Runnable {
     		packet[i] = length[i-1];
     	}
     	for (int i=5; i<8; i++) {
-    		packet[i] = fileExtension[i-5];
+    	
+	packet[i] = fileExtension[i-5];
     	}
     	for (int i=8; i<songByteLength+8; i++) {
     		packet[i] = songByteArray[i-8];
