@@ -170,6 +170,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
 
             	else if (packetType[0] == FILE) {
             		Log.d("server log", "received song from client");
+            		activity.showSpinner();
 
             		byte[] length = new byte[4];
             		inputstream.readFully(length, 0, 4);
@@ -185,6 +186,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		FileOutputStream fileoutputstream = new FileOutputStream(file);
             		fileoutputstream.write(songByteArray);
             		fileoutputstream.close();
+            		
+            		activity.hideSpinner();
             		
             		musicPlayerService.initializeSongAndPause(uri);
             		songUri = musicPlayerService.getCurrentTrackUri();
