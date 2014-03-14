@@ -34,6 +34,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private static final byte REQUEST_SEEK_TO = 0x09;
     private static final byte DELAY_REQUEST = 0x10;
     private static final byte DELAY_RESPONSE = 0x11; 
+    private static final byte REQUEST_REQUEST_SEEK_TO = 0x12;
     
     
 	private AudioService musicPlayerService = null;
@@ -49,6 +50,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private ServerSocket serverSocket;
     private ClientAccepter clientAcceptor = null;
     private URIManager uriManager;
+    private long timeBeforeRequestSeekTo = 0;
+	private long seekToDelay = 0;
 
     
     
@@ -119,15 +122,30 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	// Reads the first byte of the packet to determine packet type
             	byte[] packetType = new byte[1];
             	inputstream.readFully(packetType,0,1);
-            	if (packetType[0] == DELAY_REQUEST)
+            	/*if (packetType[0] == DELAY_REQUEST)
             	{
             		messageType[0] = DELAY_RESPONSE;
             		outputStream.write(messageType);
+            	}*/
+            	
+            	if (packetType[0] == REQUEST_SEEK_TO) {
+                	Log.d("server log", "client requested seek to");
+                	byte[] packet = new byte[5];
+                	packet[0] = SEEK_TO;
+                	byte[] millisecondsArray = new byte[4];
+                	int milliseconds = musicPlayerService.getCurrentPosition();
+                	millisecondsArray = intToByteArray(milliseconds);
+                	for (int i3=1; i3<5; i3++) {
+                		packet[i3] = millisecondsArray[i3-1];
+                	}
+                	long timeBeforeWritingToOutputStream = System.currentTimeMillis();
+                	outputStream.write(packet);
+                	Log.d("server log", "sent seek to packet to client, round trip propagation delay:" + Long.valueOf(System.currentTimeMillis()-timeBeforeWritingToOutputStream).toString());
             	}
-            	
-            	
-            	else if (packetType[0] == SEEK_TO) {
-            		Log.d("server log", "received seek to packet");
+                else if (packetType[0] == SEEK_TO) {
+
+            		seekToDelay = System.currentTimeMillis()-timeBeforeRequestSeekTo;
+            		Log.d("server log", "received seek to packet. seekToDelay: " + Long.valueOf(seekToDelay).toString());
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];
             		inputstream.readFully(millisecondsArray, 0, 4);
@@ -137,6 +155,14 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.seekTo(milliseconds);
             		broadcastSeekTo(i);
             		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
+            	}
+            	
+            	else if (packetType[0] == REQUEST_REQUEST_SEEK_TO) {
+                	Log.d("server log", "client requested request seek to");
+                	packetType[0]=REQUEST_SEEK_TO;
+                	timeBeforeRequestSeekTo = System.currentTimeMillis();
+                	outputStream.write(messageType);
+                	continue;
             	}
             	
             	else if (packetType[0] == CONNECT) {
@@ -242,22 +268,6 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.play();
             		
             		broadcastPlay(i);
-            	}
-            	
-            	else if (packetType[0] == REQUEST_SEEK_TO) {
-                	Log.d("server log", "client requested seek to");
-                	byte[] packet = new byte[5];
-                	packet[0] = SEEK_TO;
-                	byte[] millisecondsArray = new byte[4];
-                	int milliseconds = musicPlayerService.getCurrentPosition();
-                	millisecondsArray = intToByteArray(milliseconds);
-                	for (int i3=1; i3<5; i3++) {
-                		packet[i3] = millisecondsArray[i3-1];
-                	}
-                	long timeBeforeWritingToOutputStream = System.currentTimeMillis();
-                	outputStream.write(packet);
-                	Log.d("server log", "sent seek to packet to client, round trip propagation delay:" + Long.valueOf(System.currentTimeMillis()-timeBeforeWritingToOutputStream).toString());
-                	
             	}
             	
 

@@ -34,6 +34,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     private static final byte REQUEST_SEEK_TO = 0x09;
     private static final byte DELAY_REQUEST = 0x10;
     private static final byte DELAY_RESPONSE = 0x11; 
+    private static final byte REQUEST_REQUEST_SEEK_TO = 0x12;
 
     private String server;
     private int uuid;
@@ -49,6 +50,8 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     private long timeAtSend;
     private long timeDelay;
     private URIManager uriManager;
+    private long timeBeforeRequestSeekTo = 0;
+	private long seekToDelay = 0;
     
     
     public ClientAsyncTask(Context context, AudioService musicPlayerService, String host, MainActivity activity) {
@@ -121,9 +124,8 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType[0] == SEEK_TO) {
-            		
-            		Log.d("client log", "received seek to message from server");
-            		
+            		seekToDelay = System.currentTimeMillis()-timeBeforeRequestSeekTo;
+            		Log.d("server log", "received seek to packet. seekToDelay: " + Long.valueOf(seekToDelay).toString());
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];
             		inputstream.readFully(millisecondsArray, 0, 4);
@@ -133,6 +135,28 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
 //            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
             		musicPlayerService.seekTo(milliseconds);
             		Log.d("total delay log", "received seek to, delay: "+Long.valueOf(delay).toString());
+            	}
+            	
+            	else if (packetType[0] == REQUEST_SEEK_TO) {
+                	Log.d("client log", "client requested seek to");
+                	byte[] packet = new byte[5];
+                	packet[0] = SEEK_TO;
+                	byte[] millisecondsArray = new byte[4];
+                	int milliseconds = musicPlayerService.getCurrentPosition();
+                	millisecondsArray = intToByteArray(milliseconds);
+                	for (int i=1; i<5; i++) {
+                		packet[i] = millisecondsArray[i-1];
+                	}
+                	outputStream.write(packet);
+                	Log.d("client log", "sent seek to packet to server");
+            	}
+            	
+               	else if (packetType[0] == REQUEST_REQUEST_SEEK_TO) {
+                	Log.d("client log", "server requested request seek to");
+                	packetType[0]=REQUEST_SEEK_TO;
+                	timeBeforeRequestSeekTo = System.currentTimeMillis();
+                	outputStream.write(messageType);
+                	continue;
             	}
             	
             	else if (packetType[0] == WELCOME){
@@ -223,19 +247,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.play();
             	}
             	
-            	else if (packetType[0] == REQUEST_SEEK_TO) {
-                	Log.d("client log", "client requested seek to");
-                	byte[] packet = new byte[5];
-                	packet[0] = SEEK_TO;
-                	byte[] millisecondsArray = new byte[4];
-                	int milliseconds = musicPlayerService.getCurrentPosition();
-                	millisecondsArray = intToByteArray(milliseconds);
-                	for (int i=1; i<5; i++) {
-                		packet[i] = millisecondsArray[i-1];
-                	}
-                	outputStream.write(packet);
-                	Log.d("client log", "sent seek to packet to server");
-            	}
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
             		Log.d("client log", "received stop playback message from server");
