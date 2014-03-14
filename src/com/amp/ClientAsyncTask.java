@@ -88,7 +88,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
             socket.bind(null);
             socket.connect(new InetSocketAddress(server, 8888));
             Log.d("client log", "connected to server");
-//            activity.toastConnectedToServer();
             DataInputStream inputstream = new DataInputStream(socket.getInputStream());
             outputStream = socket.getOutputStream();
             
@@ -118,8 +117,8 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
             		long delay = System.currentTimeMillis()-timeBeginningLoop;
-//            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
-            		musicPlayerService.seekTo(milliseconds);
+            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
+//            		musicPlayerService.seekTo(milliseconds);
             		Log.d("total delay log", "received seek to, delay: "+Long.valueOf(delay).toString());
             	}
             	
@@ -229,7 +228,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
             	
             	else if (packetType[0] == PLAY) {
             		Log.d("client log", "received play message from server");
-//            		musicPlayerService.iterativePlay();
             		musicPlayerService.play();
             	}
             	

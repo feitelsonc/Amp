@@ -93,191 +93,190 @@ public class ServerAsyncTask extends Thread implements Runnable {
         	clientAcceptor.start();
 
         	while (true) {
-        	long timeBeginningLoop = System.currentTimeMillis();
-        	DataInputStream inputstream;
-        	OutputStream outputStream;
-        	for (int i=0; i<numClients; i++) {
-        		Socket client = dictionary.get(Integer.valueOf(i).toString());
-        		inputstream = new DataInputStream(client.getInputStream());
-	        	if (inputstream.available() == 0) {
-	        		continue;
-	        		
+	        	long timeBeginningLoop = System.currentTimeMillis();
+	        	DataInputStream inputstream;
+	        	OutputStream outputStream;
+	        	for (int i=0; i<numClients; i++) {
+	        		Socket client = dictionary.get(Integer.valueOf(i).toString());
+	        		inputstream = new DataInputStream(client.getInputStream());
+		        	if (inputstream.available() == 0) {
+		        		continue;
+		        		
+		        	}
+		        	else {
+		        		outputStream = client.getOutputStream();
+		        	}
+		        	
+	            	if (isTaskCancelled) {
+	            		broadcastStopPlayback(-1);
+	            		for (int i2=0; i2<numClients; i2++) {
+	            			dictionary.get(Integer.valueOf(i2)).close();          			
+	            		}
+	                }
+	
+	            	// Reads the first byte of the packet to determine packet type
+	            	byte[] packetType = new byte[1];
+	            	inputstream.readFully(packetType,0,1);
+	            	/*if (packetType[0] == DELAY_REQUEST)
+	            	{
+	            		messageType[0] = DELAY_RESPONSE;
+	            		outputStream.write(messageType);
+	            	}*/
+	            	
+	            	if (packetType[0] == REQUEST_SEEK_TO) {
+	                	Log.d("server log", "client requested seek to");
+	                	byte[] packet = new byte[5];
+	                	packet[0] = SEEK_TO;
+	                	byte[] millisecondsArray = new byte[4];
+	                	int milliseconds = musicPlayerService.getCurrentPosition();
+	                	millisecondsArray = intToByteArray(milliseconds);
+	                	for (int i3=1; i3<5; i3++) {
+	                		packet[i3] = millisecondsArray[i3-1];
+	                	}
+	                	long timeBeforeWritingToOutputStream = System.currentTimeMillis();
+	                	outputStream.write(packet);
+	                	Log.d("server log", "sent seek to packet to client, round trip propagation delay:" + Long.valueOf(System.currentTimeMillis()-timeBeforeWritingToOutputStream).toString());
+	            	}
+	                else if (packetType[0] == SEEK_TO) {
+	
+	            		seekToDelay = System.currentTimeMillis()-timeBeforeRequestSeekTo;
+	            		Log.d("server log", "received seek to packet. seekToDelay: " + Long.valueOf(seekToDelay).toString());
+	            		int milliseconds = 0;
+	            		byte[] millisecondsArray = new byte [4];
+	            		inputstream.readFully(millisecondsArray, 0, 4);
+	            		milliseconds = byteArrayToInt(millisecondsArray);
+	            		long delay = System.currentTimeMillis()-timeBeginningLoop;
+	            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
+//	            		musicPlayerService.seekTo(milliseconds);
+	            		broadcastSeekTo(i);
+	            		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
+	            	}
+	            	
+	            	else if (packetType[0] == ANTICIPATE_SEEK_TO) {
+	                	Log.d("server log", "client requested request seek to");
+	                	packetType[0]=REQUEST_SEEK_TO;
+	                	timeBeforeRequestSeekTo = System.currentTimeMillis();
+	                	outputStream.write(messageType);
+	            	}
+	            	
+	            	else if (packetType[0] == CONNECT) {
+	            		Log.d("server log", "received connect packet from client");
+	            		messageType[0] = WELCOME;
+	//            	    clientUuid[0] = Integer.valueOf(numClients).byteValue();
+	            		outputStream.write(messageType);
+	//            		outputStream.write(clientUuid);
+	            	}
+	            	
+	            	else if (packetType[0] == DISCONNECT) {
+	//            		activity.toastClientDisconnected();
+	//            		int uuidToRemove = inputstream.readFully();
+	            		dictionary.remove(Integer.valueOf(i).toString());
+	            		Log.d("server log", "received disconnect packet from client");
+	            	}
+	            	
+	            	else if (packetType[0] == FILE_REQUEST) {
+	            		Log.d("server log", "received file requested packet from client");
+	            		
+	            		// get current track file from musicPlayerService
+	            		songUri = musicPlayerService.getCurrentTrackUri();
+	            		
+	            		FileInputStream songFileinputstream;
+	            		File songfile;
+	            		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+	            			songfile = new File(uriManager.getPath(songUri));
+	            		}
+	            		else {
+	            			songfile = new File(uriManager.getPath(context, songUri));
+	            		}
+	                	try {
+	                		songFileinputstream = new FileInputStream(songfile);
+	                		songByteLength = (int) songfile.length();
+	                		songByteArray = new byte[songByteLength];
+	                		songFileinputstream.read(songByteArray, 0, songByteLength);
+	                		songFileinputstream.close();
+	                	} catch (Exception e) {
+	                		Log.d("server log", e.toString());
+	                		e.printStackTrace();  
+	                	}
+	
+	                	byte type_packet = FILE;
+	                	outputStream.write(type_packet);
+	                	byte[] length = intToByteArray(songByteLength);
+	                	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
+	
+	                	outputStream.write(length,0,length.length);
+	                	
+	                	outputStream.write(fileExtension,0,fileExtension.length);
+	                	Log.d("server log", "before sent file message to server");
+	                	outputStream.write(songByteArray,0,songByteArray.length);
+	                	Log.d("server log", "sent file packet to client");
+	                	
+	            	}
+	
+	            	else if (packetType[0] == FILE) {
+	            		Log.d("server log", "received song from client");
+	            		activity.showSpinner();
+	
+	            		byte[] length = new byte[4];
+	            		inputstream.readFully(length, 0, 4);
+	            		int fileLength = byteArrayToInt(length);
+	            		byte[] fileExtension = new byte[3];
+	            		inputstream.readFully(fileExtension, 0, 3);
+	            		String filetype = new String(fileExtension);
+	            		File file = createFile(filetype);
+	            		Uri uri = Uri.fromFile(file);
+	            		songByteArray = new byte[fileLength];
+	            		songByteLength = fileLength;
+	            		inputstream.readFully(songByteArray, 0, fileLength);
+	            		FileOutputStream fileoutputstream = new FileOutputStream(file);
+	            		fileoutputstream.write(songByteArray);
+	            		fileoutputstream.close();
+	            		
+	            		activity.hideSpinner();
+	            		
+	            		musicPlayerService.initializeSongAndPause(uri);
+	            		songUri = musicPlayerService.getCurrentTrackUri();
+	            		
+	            		// update activity UI
+	            		activity.reloadUI();
+	            		
+	
+	//            		broadcastStopPlayback(i);
+	            		broadcastSong(i);  
+	            		
+	            		// request playback location of file
+	            		messageType[0] = REQUEST_SEEK_TO;
+	            		outputStream.write(messageType);
+	            	}
+	            	
+	            	else if (packetType[0] == PAUSE) {
+	            		Log.d("server log", "client paused");
+	            		musicPlayerService.pause();
+	            		
+	            		broadcastPause(i);
+	            	}
+	            	
+	            	else if (packetType[0] == PLAY) {
+	            		Log.d("server log", "client played");
+	//            		musicPlayerService.iterativePlay();
+	            		musicPlayerService.play();
+	            		
+	            		broadcastPlay(i);
+	            	}
+	            	
+	
+	            	
+	            	else if (packetType[0] == STOP_PLAYBACK) {
+	            		Log.d("server log", "client stopped playback");
+	            		musicPlayerService.pause();
+	            	}
+	            	
+	            	else {
+	            		Log.d("server log", "invalid packet type");
+	            	}
 	        	}
-	        	else {
-	        		outputStream = client.getOutputStream();
-	        	}
-	        	
-            	if (isTaskCancelled) {
-            		broadcastStopPlayback(-1);
-            		for (int i2=0; i2<numClients; i2++) {
-            			dictionary.get(Integer.valueOf(i2)).close();          			
-            		}
-                }
-
-            	// Reads the first byte of the packet to determine packet type
-            	byte[] packetType = new byte[1];
-            	inputstream.readFully(packetType,0,1);
-            	/*if (packetType[0] == DELAY_REQUEST)
-            	{
-            		messageType[0] = DELAY_RESPONSE;
-            		outputStream.write(messageType);
-            	}*/
-            	
-            	if (packetType[0] == REQUEST_SEEK_TO) {
-                	Log.d("server log", "client requested seek to");
-                	byte[] packet = new byte[5];
-                	packet[0] = SEEK_TO;
-                	byte[] millisecondsArray = new byte[4];
-                	int milliseconds = musicPlayerService.getCurrentPosition();
-                	millisecondsArray = intToByteArray(milliseconds);
-                	for (int i3=1; i3<5; i3++) {
-                		packet[i3] = millisecondsArray[i3-1];
-                	}
-                	long timeBeforeWritingToOutputStream = System.currentTimeMillis();
-                	outputStream.write(packet);
-                	Log.d("server log", "sent seek to packet to client, round trip propagation delay:" + Long.valueOf(System.currentTimeMillis()-timeBeforeWritingToOutputStream).toString());
-            	}
-                else if (packetType[0] == SEEK_TO) {
-
-            		seekToDelay = System.currentTimeMillis()-timeBeforeRequestSeekTo;
-            		Log.d("server log", "received seek to packet. seekToDelay: " + Long.valueOf(seekToDelay).toString());
-            		int milliseconds = 0;
-            		byte[] millisecondsArray = new byte [4];
-            		inputstream.readFully(millisecondsArray, 0, 4);
-            		milliseconds = byteArrayToInt(millisecondsArray);
-            		long delay = System.currentTimeMillis()-timeBeginningLoop;
-//            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
-            		musicPlayerService.seekTo(milliseconds);
-            		broadcastSeekTo(i);
-            		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
-            	}
-            	
-            	else if (packetType[0] == ANTICIPATE_SEEK_TO) {
-                	Log.d("server log", "client requested request seek to");
-                	packetType[0]=REQUEST_SEEK_TO;
-                	timeBeforeRequestSeekTo = System.currentTimeMillis();
-                	outputStream.write(messageType);
-            	}
-            	
-            	else if (packetType[0] == CONNECT) {
-            		Log.d("server log", "received connect packet from client");
-            		messageType[0] = WELCOME;
-//            	    clientUuid[0] = Integer.valueOf(numClients).byteValue();
-            		outputStream.write(messageType);
-//            		outputStream.write(clientUuid);
-            	}
-            	
-            	else if (packetType[0] == DISCONNECT) {
-//            		activity.toastClientDisconnected();
-//            		int uuidToRemove = inputstream.readFully();
-            		dictionary.remove(Integer.valueOf(i).toString());
-            		Log.d("server log", "received disconnect packet from client");
-            	}
-            	
-            	else if (packetType[0] == FILE_REQUEST) {
-            		Log.d("server log", "received file requested packet from client");
-            		
-            		// get current track file from musicPlayerService
-            		songUri = musicPlayerService.getCurrentTrackUri();
-            		
-            		FileInputStream songFileinputstream;
-            		File songfile;
-            		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            			songfile = new File(uriManager.getPath(songUri));
-            		}
-            		else {
-            			songfile = new File(uriManager.getPath(context, songUri));
-            		}
-                	try {
-                		songFileinputstream = new FileInputStream(songfile);
-                		songByteLength = (int) songfile.length();
-                		songByteArray = new byte[songByteLength];
-                		songFileinputstream.read(songByteArray, 0, songByteLength);
-                		songFileinputstream.close();
-                	} catch (Exception e) {
-                		Log.d("server log", e.toString());
-                		e.printStackTrace();  
-                	}
-
-                	byte type_packet = FILE;
-                	outputStream.write(type_packet);
-                	byte[] length = intToByteArray(songByteLength);
-                	byte[] fileExtension = (songfile.getAbsolutePath().substring(songfile.getAbsolutePath().length()-3)).getBytes();
-
-                	outputStream.write(length,0,length.length);
-                	
-                	outputStream.write(fileExtension,0,fileExtension.length);
-                	Log.d("server log", "before sent file message to server");
-                	outputStream.write(songByteArray,0,songByteArray.length);
-                	Log.d("server log", "sent file packet to client");
-                	
-            	}
-
-            	else if (packetType[0] == FILE) {
-            		Log.d("server log", "received song from client");
-            		activity.showSpinner();
-
-            		byte[] length = new byte[4];
-            		inputstream.readFully(length, 0, 4);
-            		int fileLength = byteArrayToInt(length);
-            		byte[] fileExtension = new byte[3];
-            		inputstream.readFully(fileExtension, 0, 3);
-            		String filetype = new String(fileExtension);
-            		File file = createFile(filetype);
-            		Uri uri = Uri.fromFile(file);
-            		songByteArray = new byte[fileLength];
-            		songByteLength = fileLength;
-            		inputstream.readFully(songByteArray, 0, fileLength);
-            		FileOutputStream fileoutputstream = new FileOutputStream(file);
-            		fileoutputstream.write(songByteArray);
-            		fileoutputstream.close();
-            		
-            		activity.hideSpinner();
-            		
-            		musicPlayerService.initializeSongAndPause(uri);
-            		songUri = musicPlayerService.getCurrentTrackUri();
-            		
-            		// update activity UI
-            		activity.reloadUI();
-            		
-
-//            		broadcastStopPlayback(i);
-            		broadcastSong(i);  
-            		
-            		// request playback location of file
-            		messageType[0] = REQUEST_SEEK_TO;
-            		outputStream.write(messageType);
-            	}
-            	
-            	else if (packetType[0] == PAUSE) {
-            		Log.d("server log", "client paused");
-            		musicPlayerService.pause();
-            		
-            		broadcastPause(i);
-            	}
-            	
-            	else if (packetType[0] == PLAY) {
-            		Log.d("server log", "client played");
-//            		musicPlayerService.iterativePlay();
-            		musicPlayerService.play();
-            		
-            		broadcastPlay(i);
-            	}
-            	
-
-            	
-            	else if (packetType[0] == STOP_PLAYBACK) {
-            		Log.d("server log", "client stopped playback");
-            		musicPlayerService.pause();
-            	}
-            	
-            	else
-            	{
-            		Log.d("server log", "invalid packet type");
-            	}
-
-        	}
-        }} catch (Exception e) {
+	        }
+        } catch (Exception e) {
         	Log.d("server log", e.toString());
         }
     }
