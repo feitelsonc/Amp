@@ -213,7 +213,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	
             	else if (packetType[0] == PLAY) {
             		Log.d("server log", "client played");
-            		musicPlayerService.iterativePlay();
+//            		musicPlayerService.iterativePlay();
+            		musicPlayerService.play();
             		
             		broadcastPlay(i);
             		broadcastSeekTo(i);
@@ -277,6 +278,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     	messageType[0] = PLAY;
     	sendToClients(messageType, clientOriginator);
     	Log.d("server log", "broadcasted play");
+    	broadcastSeekTo(clientOriginator);
     }
     
     public void broadcastSeekTo(int clientOriginator) {

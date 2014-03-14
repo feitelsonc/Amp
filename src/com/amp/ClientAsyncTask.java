@@ -195,7 +195,8 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	
             	else if (packetType[0] == PLAY) {
             		Log.d("client log", "received play message from server");
-            		musicPlayerService.iterativePlay();
+//            		musicPlayerService.iterativePlay();
+            		musicPlayerService.play();
             	}
             	
             	else if (packetType[0] == REQUEST_SEEK_TO) {
@@ -275,7 +276,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     	}
     	try {
 			outputStream.write(packet);
-			Log.d("client log", "sent seek to message to serverpropagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
+			Log.d("client log", "sent seek to message to server. propagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
