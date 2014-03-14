@@ -14,11 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
-import android.widget.Toast;
 
 public class ServerAsyncTask extends Thread implements Runnable {
 	
@@ -32,9 +30,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
     private static final byte SEEK_TO = 0x07;
     private static final byte STOP_PLAYBACK = 0x08;
     private static final byte REQUEST_SEEK_TO = 0x09;
-    private static final byte DELAY_REQUEST = 0x10;
-    private static final byte DELAY_RESPONSE = 0x11; 
-    private static final byte REQUEST_REQUEST_SEEK_TO = 0x12;
+    private static final byte ANTICIPATE_SEEK_TO = 0x12;
     
     
 	private AudioService musicPlayerService = null;
@@ -116,7 +112,6 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		for (int i2=0; i2<numClients; i2++) {
             			dictionary.get(Integer.valueOf(i2)).close();          			
             		}
-//                    return null;
                 }
 
             	// Reads the first byte of the packet to determine packet type
@@ -157,12 +152,11 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
             	}
             	
-            	else if (packetType[0] == REQUEST_REQUEST_SEEK_TO) {
+            	else if (packetType[0] == ANTICIPATE_SEEK_TO) {
                 	Log.d("server log", "client requested request seek to");
                 	packetType[0]=REQUEST_SEEK_TO;
                 	timeBeforeRequestSeekTo = System.currentTimeMillis();
                 	outputStream.write(messageType);
-                	continue;
             	}
             	
             	else if (packetType[0] == CONNECT) {
@@ -176,7 +170,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
             	else if (packetType[0] == DISCONNECT) {
 //            		activity.toastClientDisconnected();
 //            		int uuidToRemove = inputstream.readFully();
-//            		dictionary.remove(Integer.valueOf(uuidToRemove).toString());
+            		dictionary.remove(Integer.valueOf(i).toString());
             		Log.d("server log", "received disconnect packet from client");
             	}
             	
@@ -282,11 +276,10 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		Log.d("server log", "invalid packet type");
             	}
 
-        }
+        	}
         }} catch (Exception e) {
         	Log.d("server log", e.toString());
         }
-//		return null;
     }
     
     public void broadcastPause(int clientOriginator) {
@@ -323,7 +316,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
     public void broadcastRequestRequestSeekTo(int clientOriginator) {
 		long timeBeginningReqReqSeekTo = System.currentTimeMillis();
     	byte[] packet = new byte[1];
-    	packet[0] = REQUEST_REQUEST_SEEK_TO;
+    	packet[0] = ANTICIPATE_SEEK_TO;
     	sendToClients(packet, clientOriginator);
     	Log.d("total delay log", "broadcasted request request seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningReqReqSeekTo).toString());
 }
@@ -393,16 +386,6 @@ public class ServerAsyncTask extends Thread implements Runnable {
 		}
 		return f;
     }
-    
-//    @Override
-//    protected void onPreExecute() {
-////    	Toast.makeText(context, "Server Started", Toast.LENGTH_SHORT).show();
-//    }
-//    
-//    @Override
-//    protected void onPostExecute(Void result) {
-//    	Toast.makeText(context, "Server Stopped", Toast.LENGTH_SHORT).show();
-//    }
     
     private void sendToClients(byte[] packet, int clientOriginator) {
     	long timeBeforeSendToClients = System.currentTimeMillis();

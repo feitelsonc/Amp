@@ -30,9 +30,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
     private static final byte SEEK_TO = 0x07;
     private static final byte STOP_PLAYBACK = 0x08;
     private static final byte REQUEST_SEEK_TO = 0x09;
-    private static final byte DELAY_REQUEST = 0x10;
-    private static final byte DELAY_RESPONSE = 0x11; 
-    private static final byte REQUEST_REQUEST_SEEK_TO = 0x12;
+    private static final byte ANTICIPATE_SEEK_TO = 0x12;
 
     private String server;
     private int uuid;
@@ -45,8 +43,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
     private byte[] songByteArray;
     private int songByteLength;
     private boolean isTaskCancelled = false;
-    private long timeAtSend;
-    private long timeDelay;
     private URIManager uriManager;
     private long timeBeforeRequestSeekTo = 0;
 	private long seekToDelay = 0;
@@ -97,7 +93,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
             outputStream = socket.getOutputStream();
             
             messageType[0]=CONNECT;
-            timeAtSend = System.currentTimeMillis();
             outputStream.write(messageType);
             Log.d("client log", "sent connect message to server");
             
@@ -108,20 +103,13 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		outputStream.write(messageType);
 //            		outputStream.write(Integer.valueOf(uuid).byteValue());
             		socket.close();
-//                    return null;
                 }
             	
             	// Reads the first byte of the packet to determine packet type
             	inputstream.readFully(packetType, 0, 1);
             	long timeBeginningLoop = System.currentTimeMillis();
             	
-            	if (packetType[0] == DELAY_RESPONSE) {
-            		Log.d("client log", "received delay response message from server");
-            		timeDelay = (System.currentTimeMillis()-timeDelay)/2;
-            		Log.d("total delay log", "prop delay: "+ Long.valueOf(timeDelay).toString());
-            	}
-            	
-            	else if (packetType[0] == SEEK_TO) {
+            	if (packetType[0] == SEEK_TO) {
             		seekToDelay = System.currentTimeMillis()-timeBeforeRequestSeekTo;
             		Log.d("client log", "received seek to packet. seekToDelay: " + Long.valueOf(seekToDelay).toString());
             		int milliseconds = 0;
@@ -149,7 +137,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
                 	Log.d("client log", "sent seek to packet to server");
             	}
             	
-               	else if (packetType[0] == REQUEST_REQUEST_SEEK_TO) {
+               	else if (packetType[0] == ANTICIPATE_SEEK_TO) {
                 	Log.d("client log", "server requested request seek to");
                 	packetType[0]=REQUEST_SEEK_TO;
                 	timeBeforeRequestSeekTo = System.currentTimeMillis();
@@ -261,7 +249,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
         } catch (Exception e) {
         	Log.d("client log", e.toString());
         }
-//		return null;
     }
     
     public void sendPause() {
@@ -299,7 +286,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
         	try {
     			outputStream.write(packet);    			
     			Log.d("client log", "sent seek to message to server");
-    			sendDelayRequest();
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
@@ -308,25 +294,13 @@ public class ClientAsyncTask extends Thread implements Runnable {
     public void sendRequestRequestSeekTo() {
 		long timeBeginningReqReqSeekTo = System.currentTimeMillis();
     	byte[] packet = new byte[1];
-    	packet[0] = REQUEST_REQUEST_SEEK_TO;
+    	packet[0] = ANTICIPATE_SEEK_TO;
     	try {
 			outputStream.write(packet);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
     	Log.d("total delay log", "broadcasted request request seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningReqReqSeekTo).toString());
-}
-    
-    public void sendDelayRequest() {
-    	timeDelay = System.currentTimeMillis();
-    	byte[] messageType = new byte[1];
-    	messageType[0]=DELAY_REQUEST;
-    	try {
-			outputStream.write(messageType);
-			Log.d("client log", "sent delay request message to server");
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
     }
     
     public void sendSong() {
@@ -385,16 +359,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
         cursor.close();
         return res;
     }
-    
-//    @Override
-//    protected void onPreExecute() {
-////    	Toast.makeText(context, "Client Started", Toast.LENGTH_SHORT).show();
-//    }
-//    
-//    @Override
-//    protected void onPostExecute(Void result) {
-//    	Toast.makeText(context, "Client Stopped", Toast.LENGTH_SHORT).show();
-//    }
     
     private File createFile(String FileType){
     	String date = java.text.DateFormat.getDateTimeInstance().format(Calendar.getInstance().getTime());
