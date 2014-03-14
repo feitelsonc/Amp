@@ -32,7 +32,10 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private static final byte SEEK_TO = 0x07;
     private static final byte STOP_PLAYBACK = 0x08;
     private static final byte REQUEST_SEEK_TO = 0x09;
-
+    private static final byte DELAY_REQUEST = 0x10;
+    private static final byte DELAY_RESPONSE = 0x11; 
+    
+    
 	private AudioService musicPlayerService = null;
 	private MainActivity activity;
 	private int numClients = 0;
@@ -46,6 +49,8 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     private ServerSocket serverSocket;
     private ClientAccepter clientAcceptor = null;
     private URIManager uriManager;
+
+    
     
     public ServerAsyncTask(Context context, AudioService musicPlayerService, MainActivity activity) {
         this.context = context;
@@ -114,8 +119,14 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	// Reads the first byte of the packet to determine packet type
             	byte[] packetType = new byte[1];
             	inputstream.readFully(packetType,0,1);
+            	if (packetType[0] == DELAY_REQUEST)
+            	{
+            		messageType[0] = DELAY_RESPONSE;
+            		outputStream.write(messageType);
+            	}
             	
-            	if (packetType[0] == SEEK_TO) {
+            	
+            	else if (packetType[0] == SEEK_TO) {
             		Log.d("server log", "received seek to packet");
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];

@@ -32,6 +32,8 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     private static final byte SEEK_TO = 0x07;
     private static final byte STOP_PLAYBACK = 0x08;
     private static final byte REQUEST_SEEK_TO = 0x09;
+    private static final byte DELAY_REQUEST = 0x10;
+    private static final byte DELAY_RESPONSE = 0x11; 
 
     private String server;
     private int uuid;
@@ -45,8 +47,9 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     private int songByteLength;
     private boolean isTaskCancelled = false;
     private long timeAtSend;
-    private int timeDelay;
+    private long timeDelay;
     private URIManager uriManager;
+    
     
     public ClientAsyncTask(Context context, AudioService musicPlayerService, String host, MainActivity activity) {
         this.context = context;
@@ -111,7 +114,13 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	inputstream.readFully(packetType, 0, 1);
             	long timeBeginningLoop = System.currentTimeMillis();
             	
-           	    if (packetType[0] == SEEK_TO) {
+            	if (packetType[0] == DELAY_RESPONSE)
+            	{
+            		timeDelay = (System.currentTimeMillis()-timeDelay)/2;
+            		Log.d("total delay", "requested prop delay: "+ Long.valueOf(timeDelay).toString());
+            	}
+            	
+            	else if (packetType[0] == SEEK_TO) {
             		
             		Log.d("client log", "received seek to message from server");
             		
@@ -126,8 +135,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	}
             	
             	else if (packetType[0] == WELCOME){
-            		timeDelay = (int) (System.currentTimeMillis() - timeAtSend)/2;
-            		Log.d("client log", "time delay: " + Integer.valueOf(timeDelay).toString());
             		Log.d("client log", "received welcome message from server");
 //            		uuid = inputstream.read();
             		if (musicPlayerService.isPlaying()) {
@@ -270,6 +277,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void sendSeekTo() {
+    		sendDelayRequest();
         	byte[] packet = new byte[5];
         	packet[0] = Integer.valueOf(SEEK_TO).byteValue();
         	byte[] millisecondsArray = new byte[4];
@@ -284,6 +292,17 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
+    }
+    
+    public void sendDelayRequest() {
+    	timeDelay = System.currentTimeMillis();
+    	byte[] messageType = new byte[1];
+    	messageType[0]=DELAY_REQUEST;
+    	try {
+			outputStream.write(messageType);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
     
     public void sendSong() {
