@@ -98,7 +98,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             Log.d("client log", "sent connect message to server");
             
             while (true) {
-            	long timeBeginningLoop = System.currentTimeMillis();
+            	
             	if (isTaskCancelled){
             		messageType[0]=DISCONNECT;
             		outputStream.write(messageType);
@@ -109,8 +109,23 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             	
             	// Reads the first byte of the packet to determine packet type
             	inputstream.readFully(packetType, 0, 1);
+            	long timeBeginningLoop = System.currentTimeMillis();
             	
-            	if (packetType[0] == WELCOME){
+           	    if (packetType[0] == SEEK_TO) {
+            		
+            		Log.d("client log", "received seek to message from server");
+            		
+            		int milliseconds = 0;
+            		byte[] millisecondsArray = new byte [4];
+            		inputstream.readFully(millisecondsArray, 0, 4);
+            		milliseconds = byteArrayToInt(millisecondsArray);
+            		musicPlayerService.play();
+            		long delay = System.currentTimeMillis()-timeBeginningLoop;
+            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
+            		Log.d("total delay log", "received seek to, delay: "+Long.valueOf(delay).toString());
+            	}
+            	
+            	else if (packetType[0] == WELCOME){
             		timeDelay = (int) (System.currentTimeMillis() - timeAtSend)/2;
             		Log.d("client log", "time delay: " + Integer.valueOf(timeDelay).toString());
             		Log.d("client log", "received welcome message from server");
@@ -211,19 +226,6 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
                 	}
                 	outputStream.write(packet);
                 	Log.d("client log", "sent seek to packet to server");
-            	}
-            	
-            	else if (packetType[0] == SEEK_TO) {
-            		
-            		Log.d("client log", "received seek to message from server");
-            		
-            		int milliseconds = 0;
-            		byte[] millisecondsArray = new byte [4];
-            		inputstream.readFully(millisecondsArray, 0, 4);
-            		milliseconds = byteArrayToInt(millisecondsArray);
-            		musicPlayerService.play();
-            		musicPlayerService.iterativeSeekTo(milliseconds);
-            		Log.d("total delay log", "received seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningLoop).toString());
             	}
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
