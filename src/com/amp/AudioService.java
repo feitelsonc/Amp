@@ -95,6 +95,12 @@ public class AudioService extends Service {
 		}
 	}
 	
+	public void disconnectClient() {
+		if (this.client != null) {
+			this.client.cancelTask();
+		}
+	}
+	
 	public void cancelServerAndClientTasks() {
 		if (this.client != null) {
 			this.client.cancelTask();

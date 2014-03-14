@@ -341,7 +341,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	    			public void onSuccess() {
 	    				
 	    				//TODO: PROPERLY HANDLE LEAVING GROUP
-	    				
+	    				musicPlayerService.disconnectClient();
 //	    				if (client != null) {
 //	    					client.cancelTask();
 //	    				}
