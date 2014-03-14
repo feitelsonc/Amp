@@ -115,14 +115,15 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	inputstream.readFully(packetType,0,1);
             	
             	if (packetType[0] == SEEK_TO) {
-            		Log.d("server log", "client changes seek pos");
+            		Log.d("server log", "received seek to packet");
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
-            		musicPlayerService.iterativeSeekTo(milliseconds);
+            		long delay = System.currentTimeMillis()-timeBeginningLoop;
+            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
             		broadcastSeekTo(i);
-            		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(System.currentTimeMillis()-timeBeginningLoop).toString());
+            		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
             	}
             	
             	else if (packetType[0] == CONNECT) {
