@@ -198,6 +198,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
             		
             		activity.hideSpinner();
             		
+            		
             		musicPlayerService.initializeSongAndPause(uri);
             		songUri = musicPlayerService.getCurrentTrackUri();
             		
@@ -277,7 +278,7 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void sendSeekTo() {
-    		sendDelayRequest();
+    		
         	byte[] packet = new byte[5];
         	packet[0] = Integer.valueOf(SEEK_TO).byteValue();
         	byte[] millisecondsArray = new byte[4];
@@ -287,8 +288,9 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
         		packet[i] = millisecondsArray[i-1];
         	}
         	try {
-    			outputStream.write(packet);
+    			outputStream.write(packet);    			
     			Log.d("client log", "sent seek to message to server");
+    			sendDelayRequest();
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
