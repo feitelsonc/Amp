@@ -138,7 +138,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             	
                	else if (packetType[0] == ANTICIPATE_SEEK_TO) {
                 	Log.d("client log", "server requested request seek to");
-                	packetType[0]=REQUEST_SEEK_TO;
+                	messageType[0]=REQUEST_SEEK_TO;
                 	timeBeforeRequestSeekTo = System.currentTimeMillis();
                 	outputStream.write(messageType);
                 	continue;
