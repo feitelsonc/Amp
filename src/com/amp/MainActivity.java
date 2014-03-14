@@ -138,11 +138,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, I
 		        	
 		        	if (masterMode && server != null) {
 	        			server.broadcastPlay(-1);
-	        			server.broadcastSeekTo(-1);
 	        		}
 		        	else if (!masterMode && client != null) {
 	        			client.sendPlay();
-	        			client.sendSeekTo();
 	        		}
 		        }
 		    }

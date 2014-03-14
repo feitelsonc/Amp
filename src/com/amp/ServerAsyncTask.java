@@ -376,9 +376,10 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     			continue;
     		}
     		try {
-    			if (dictionary.containsKey(Integer.valueOf(i))) {
+    			if (dictionary.containsKey(Integer.valueOf(i).toString())) {
     				outputStream = dictionary.get(Integer.valueOf(i).toString()).getOutputStream();
         			outputStream.write(packet);
+        			
     			}
     		} catch (IOException e) {
     			e.printStackTrace();
