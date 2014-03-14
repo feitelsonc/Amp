@@ -217,7 +217,6 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.play();
             		
             		broadcastPlay(i);
-//            		broadcastSeekTo(-1); //test
             	}
             	
             	else if (packetType[0] == REQUEST_SEEK_TO) {
@@ -245,8 +244,10 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             		musicPlayerService.play();
             		musicPlayerService.iterativeSeekTo(milliseconds);
             		
-//            		broadcastPlay(i);
-            		broadcastSeekTo(-1); // test
+            		broadcastPlay(i);
+            		for (int a=0; a<3; i++) {
+            			broadcastSeekTo(i);
+            		}
             	}
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
@@ -282,17 +283,19 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void broadcastSeekTo(int clientOriginator) {
-    	long timeBeforePause = System.currentTimeMillis();
-    	byte[] packet = new byte[5];
-    	packet[0] = SEEK_TO;
-    	byte[] millisecondsArray = new byte[4];
-    	int milliseconds = musicPlayerService.getCurrentPosition();
-    	millisecondsArray = intToByteArray(milliseconds);
-    	for (int i=1; i<5; i++) {
-    		packet[i] = millisecondsArray[i-1];
+    	for (int a=0; a<3; a++) {
+    		long timeBeforePause = System.currentTimeMillis();
+        	byte[] packet = new byte[5];
+        	packet[0] = SEEK_TO;
+        	byte[] millisecondsArray = new byte[4];
+        	int milliseconds = musicPlayerService.getCurrentPosition();
+        	millisecondsArray = intToByteArray(milliseconds);
+        	for (int i=1; i<5; i++) {
+        		packet[i] = millisecondsArray[i-1];
+        	}
+        	sendToClients(packet, clientOriginator);
+        	Log.d("server log", "broadcasted seek to, propagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
     	}
-    	sendToClients(packet, clientOriginator);
-    	Log.d("server log", "broadcasted seek to, propagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
     }
     
     public void broadcastStopPlayback(int clientOriginator) {

@@ -265,21 +265,23 @@ public class ClientAsyncTask extends AsyncTask<Void, Void, Void> {
     }
     
     public void sendSeekTo() {
-    	long timeBeforePause = System.currentTimeMillis();
-    	byte[] packet = new byte[5];
-    	packet[0] = Integer.valueOf(SEEK_TO).byteValue();
-    	byte[] millisecondsArray = new byte[4];
-    	int milliseconds = musicPlayerService.getCurrentPosition();
-    	millisecondsArray = intToByteArray(milliseconds);
-    	for (int i=1; i<5; i++) {
-    		packet[i] = millisecondsArray[i-1];
+    	for (int a=0; a<3; a++) {
+    		long timeBeforePause = System.currentTimeMillis();
+        	byte[] packet = new byte[5];
+        	packet[0] = Integer.valueOf(SEEK_TO).byteValue();
+        	byte[] millisecondsArray = new byte[4];
+        	int milliseconds = musicPlayerService.getCurrentPosition();
+        	millisecondsArray = intToByteArray(milliseconds);
+        	for (int i=1; i<5; i++) {
+        		packet[i] = millisecondsArray[i-1];
+        	}
+        	try {
+    			outputStream.write(packet);
+    			Log.d("client log", "sent seek to message to server. propagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
+    		} catch (IOException e) {
+    			e.printStackTrace();
+    		}
     	}
-    	try {
-			outputStream.write(packet);
-			Log.d("client log", "sent seek to message to server. propagation delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforePause).toString());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
     }
     
     public void sendSong() {
