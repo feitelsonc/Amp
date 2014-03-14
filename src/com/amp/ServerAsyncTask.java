@@ -114,7 +114,18 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
             	byte[] packetType = new byte[1];
             	inputstream.readFully(packetType,0,1);
             	
-            	if (packetType[0] == CONNECT) {
+            	if (packetType[0] == SEEK_TO) {
+            		Log.d("server log", "client changes seek pos");
+            		int milliseconds = 0;
+            		byte[] millisecondsArray = new byte [4];
+            		inputstream.readFully(millisecondsArray, 0, 4);
+            		milliseconds = byteArrayToInt(millisecondsArray);
+            		musicPlayerService.iterativeSeekTo(milliseconds);
+            		broadcastSeekTo(i);
+            		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(System.currentTimeMillis()-timeBeginningLoop).toString());
+            	}
+            	
+            	else if (packetType[0] == CONNECT) {
             		Log.d("server log", "received connect packet from client");
             		messageType[0] = WELCOME;
 //            	    clientUuid[0] = Integer.valueOf(numClients).byteValue();
@@ -235,16 +246,7 @@ public class ServerAsyncTask extends AsyncTask<Void, Void, Void> {
                 	
             	}
             	
-            	else if (packetType[0] == SEEK_TO) {
-            		Log.d("server log", "client changes seek pos");
-            		int milliseconds = 0;
-            		byte[] millisecondsArray = new byte [4];
-            		inputstream.readFully(millisecondsArray, 0, 4);
-            		milliseconds = byteArrayToInt(millisecondsArray);
-            		musicPlayerService.iterativeSeekTo(milliseconds);
-            		broadcastSeekTo(i);
-            		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(System.currentTimeMillis()-timeBeginningLoop).toString());
-            	}
+
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
             		Log.d("server log", "client stopped playback");
