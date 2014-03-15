@@ -148,7 +148,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		FileInputStream songFileinputstream;
             		File songfile;
             		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            			songfile = new File(uriManager.getPath(songUri));
+            			songfile = new File(uriManager.getPath(context, songUri));
             		}
             		else {
             			songfile = new File(uriManager.getPath(context, songUri));
@@ -306,7 +306,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
 		FileInputStream songFileinputstream;
 		File songfile;
 		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-			songfile = new File(uriManager.getPath(songUri));
+			songfile = new File(uriManager.getPath(context, songUri));
 		}
 		else {
 			songfile = new File(uriManager.getPath(context, songUri));

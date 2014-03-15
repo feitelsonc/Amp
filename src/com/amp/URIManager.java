@@ -28,19 +28,6 @@ public class URIManager {
      * @param uri The Uri to query.
      * @author paulburke
      */
-    @SuppressLint("NewApi")
-    
-    public String getPath(Uri uri) {
-        String res = null;
-        String[] proj = { MediaStore.Audio.Media.DATA };
-        Cursor cursor = context.getContentResolver().query(uri, proj, null, null, null);
-        if (cursor.moveToFirst()) {
-            int column_index = cursor .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-            res = cursor.getString(column_index);
-        }
-        cursor.close();
-        return res;
-    }
     
 	@SuppressLint("NewApi")
 	public String getPath(final Context context, final Uri uri) {
