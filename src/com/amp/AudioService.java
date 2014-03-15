@@ -10,7 +10,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 public class AudioService extends Service {
-	
+
 	private MediaPlayer player = new MediaPlayer();
 	private final IBinder binder = new LocalBinder();
 	static private boolean serviceStarted = false;
@@ -18,7 +18,7 @@ public class AudioService extends Service {
 	private Uri currentSongUri;
 	private ServerAsyncTask server = null;
     private ClientAsyncTask client = null;
-	
+
 	static public boolean isServiceStarted() {
 		return serviceStarted;
 	}
@@ -28,106 +28,91 @@ public class AudioService extends Service {
 		serviceStarted = true;
 		return binder;
 	}
-	
+
 	public class LocalBinder extends Binder {
 		public AudioService getService() {
 			// Return this instance of LocalService so clients can call public methods
 			return AudioService.this;
 		}
 	}
-	
+
 	public void startServer(MainActivity activity) {
 		this.server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), this, activity);
-//		this.server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 		this.server.start();
 	}
-	
+
 	public void serverBroadcastPause() {
 		if (server != null) {
 			this.server.broadcastPause(-1);
 		}
 	}
-	
+
 	public void serverBroadcastSong() {
 		if (server != null) {
 			this.server.broadcastSong(-1);
 		}
 	}
-	
+
 	public void serverBroadcastPlay()  {
 		if (server != null) {
 			this.server.broadcastPlay(-1);
 		}
 	}
-	
+
 	public void serverBroadcastSeekTo() {
 		if (server != null) {
 			this.server.broadcastSeekTo(-1);
 		}
 	}
-	
-	public void serverBroadcastRequestRequestSeekTo() {
-		if (server != null) {
-			this.server.broadcastRequestRequestSeekTo(-1);
-		}
-	}
-	
+
 	public void startClient(String address, MainActivity activity) {
 		this.client = new ClientAsyncTask(getApplicationContext(), this, address, activity);
-//		this.client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 		this.client.start();
 	}
-	
+
 	public void clientSendPause() {
 		if (client != null) {
 			this.client.sendPause();
 		}
 	}
-	
+
 	public void clientSendPlay() {
 		if (client != null) {
 			this.client.sendPlay();
 		}
 	}
-	
+
 	public void clientSendSong() {
 		if (client != null) {
 			this.client.sendSong();
 		}
 	}
-	
+
 	public void clientSendSeekTo() {
 		if (client != null) {
 			this.client.sendSeekTo();
 		}
 	}
-	
-	public void clientSendRequestRequestSeekTo() {
-		if (client != null) {
-			this.client.sendRequestRequestSeekTo();
-		}
-	}
-	
-	
+
 	public void disconnectClient() {
 		if (this.client != null) {
 			this.client.cancelTask();
 		}
 	}
-	
+
 	public void cancelServerAndClientTasks() {
 		if (this.client != null) {
 			this.client.cancelTask();
 		}
-		
+
 		if (this.server != null) {
 			this.server.cancelTask();
 		}
 	}
-	
+
 	public void initializeSong(Uri uri) {
 		currentSongUri = uri;
-		
+
 		player.release();
 		player = new MediaPlayer();
 		try {
@@ -140,10 +125,10 @@ public class AudioService extends Service {
 			Log.d("audio log", e.toString());
 		}
 	}
-	
+
 	public void initializeSongAndPause(Uri uri) {
 		currentSongUri = uri;
-		
+
 		player.release();
 		player = new MediaPlayer();
 		try {
@@ -157,18 +142,18 @@ public class AudioService extends Service {
 			Log.d("audio log", e.toString());
 		}
 	}
-	
+
 	public void stopPlayback() {
 		if (player.isPlaying()) {
 			player.pause();
 		}
 		playbackStopped = true;
 	}
-	
+
 	public void allowPlayback() {
 		playbackStopped = false;
 	}
-	
+
 	public void pause() {
 		if (player.isPlaying() && !playbackStopped) {
 			long timeBeforePause = System.currentTimeMillis();
@@ -177,7 +162,7 @@ public class AudioService extends Service {
 			Log.d("audio log", "Pause delay: " + Long.valueOf(timeAfterPause-timeBeforePause).toString());
 		}
 	}
-	
+
 	public void play() {
 		if (!player.isPlaying() && !playbackStopped) {
 			long timeBeforePlay = System.currentTimeMillis();
@@ -191,22 +176,22 @@ public class AudioService extends Service {
 	public boolean isPlaying() {
 		return player.isPlaying();
 	}
-	
+
 	public int getPosition() {
 		return player.getCurrentPosition()/1000;
 	}
-	
+
 	public int getCurrentPosition() {
 		return player.getCurrentPosition();
 	}
-	
+
 	public int getDuration() {
 		return player.getDuration()/1000;
 	}
-	
+
 	public long seekTo(int milliseconds) {
 		if (!playbackStopped) {
-			
+
 			long timeBeforeSeek = System.currentTimeMillis();
 			player.seekTo(milliseconds);
 			long timeAfterSeek = System.currentTimeMillis();
@@ -227,7 +212,7 @@ public class AudioService extends Service {
 		difference = System.currentTimeMillis()-difference;
 		iterativeSeekTo(milliseconds, difference);					
 	}
-	
+
 	public void iterativeSeekTo(int milliseconds,long delay) {
 		long differenceOfThisOperations = System.currentTimeMillis();
 		if(delay<5 && delay >-5)
@@ -248,12 +233,12 @@ public class AudioService extends Service {
 		nextdelayestimation = (int)delay*(-1/5);
 		delayguess = nextdelayestimation+(int)delay;
 		}
-		
-		
+
+
 		differenceOfThisOperations = System.currentTimeMillis()-differenceOfThisOperations;
 		delayguess +=differenceOfThisOperations;
 		//add this version of difference to the guess.
-		
+
 		differenceOfMediaPlayer = System.currentTimeMillis();
 		player.seekTo(milliseconds+(delayguess));
 		differenceOfMediaPlayer = System.currentTimeMillis()-differenceOfMediaPlayer;
@@ -266,11 +251,11 @@ public class AudioService extends Service {
 		delay = (int)differenceOfMediaPlayer+differenceOfThisOperations+delay-(delayguess);	
 		iterativeSeekTo(milliseconds+(delayguess),delay);			
 	}
-	
+
 	Uri getCurrentTrackUri() {
 		return currentSongUri;
 	}
-	
+
 	void releasePlayer() {
 		player.release();
 	}

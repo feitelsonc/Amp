@@ -11,15 +11,13 @@ import java.net.Socket;
 import java.util.Calendar;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
 
 public class ClientAsyncTask extends Thread implements Runnable {
-	
+
 	private static final byte CONNECT = 0x00;
     private static final byte DISCONNECT = 0x01;
     private static final byte WELCOME = 0x02;
@@ -29,11 +27,9 @@ public class ClientAsyncTask extends Thread implements Runnable {
     private static final byte PLAY = 0x06;
     private static final byte SEEK_TO = 0x07;
     private static final byte STOP_PLAYBACK = 0x08;
-    private static final byte REQUEST_SEEK_TO = 0x09;
-    private static final byte ANTICIPATE_SEEK_TO = 0x12;
+    private static final byte REQUEST_SEEK_TO = 0x09; 
 
     private String server;
-    private int uuid;
     private OutputStream outputStream;
     
 	private AudioService musicPlayerService = null;
@@ -44,8 +40,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
     private int songByteLength;
     private boolean isTaskCancelled = false;
     private URIManager uriManager;
-    private long timeBeforeRequestSeekTo = 0;
-	private long seekToPropagationDelay = 0;
     
     
     public ClientAsyncTask(Context context, AudioService musicPlayerService, String host, MainActivity activity) {
@@ -80,8 +74,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
     @Override
     public void run() {
         try {
-        
-	
+        	
             byte[] messageType = new byte[1];
             byte[] packetType = new byte[1];
             
@@ -106,47 +99,22 @@ public class ClientAsyncTask extends Thread implements Runnable {
             	
             	// Reads the first byte of the packet to determine packet type
             	inputstream.readFully(packetType, 0, 1);
-            	long timeBeginningLoop = System.currentTimeMillis();
             	
             	if (packetType[0] == SEEK_TO) {
-            		seekToPropagationDelay = System.currentTimeMillis()-timeBeforeRequestSeekTo;
-            		Log.d("client log", "received seek to packet. seekToPropagationDelay: " + Long.valueOf(seekToPropagationDelay).toString());
+            		
+            		Log.d("client log", "received seek to message from server");
+            		
             		int milliseconds = 0;
             		byte[] millisecondsArray = new byte [4];
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
-//            		musicPlayerService.play();
-            		long delay = System.currentTimeMillis()-timeBeginningLoop;
-//            		musicPlayerService.iterativeSeekTo(milliseconds);
+            		musicPlayerService.play();
+//            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
             		musicPlayerService.seekTo(milliseconds);
-             		Log.d("total delay log", "received seek to, delay: "+Long.valueOf(delay).toString());
-            	}
-            	
-            	else if (packetType[0] == REQUEST_SEEK_TO) {
-                	Log.d("client log", "client requested seek to");
-                	byte[] packet = new byte[5];
-                	packet[0] = SEEK_TO;
-                	byte[] millisecondsArray = new byte[4];
-                	int milliseconds = musicPlayerService.getCurrentPosition();
-                	millisecondsArray = intToByteArray(milliseconds);
-                	for (int i=1; i<5; i++) {
-                		packet[i] = millisecondsArray[i-1];
-                	}
-                	outputStream.write(packet);
-                	Log.d("client log", "sent seek to packet to server");
-            	}
-            	
-               	else if (packetType[0] == ANTICIPATE_SEEK_TO) {
-                	Log.d("client log", "server requested request seek to");
-                	messageType[0]=REQUEST_SEEK_TO;
-                	timeBeforeRequestSeekTo = System.currentTimeMillis();
-                	outputStream.write(messageType);
-                	continue;
             	}
             	
             	else if (packetType[0] == WELCOME){
             		Log.d("client log", "received welcome message from server");
-//            		uuid = inputstream.read();
             		if (musicPlayerService.isPlaying()) {
             			sendSong();
             		}
@@ -181,15 +149,16 @@ public class ClientAsyncTask extends Thread implements Runnable {
             	}
             	
             	else if (packetType[0] == FILE) {
-            		musicPlayerService.stopPlayback();
             		Log.d("client log", "received file message from server");
+            		
+            		musicPlayerService.stopPlayback();
+            		
             		activity.showSpinner();
             		
             		byte[] length = new byte[4];
             		inputstream.readFully(length, 0, 4);
             		int fileLength = byteArrayToInt(length);
             		byte[] fileExtension = new byte[3];
-            
             		inputstream.readFully(fileExtension, 0, 3);
             		
             		String filetype = new String(fileExtension);
@@ -205,13 +174,13 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		
             		FileOutputStream fileoutputstream = new FileOutputStream(file);
 
-            	
             		fileoutputstream.write(songByteArray);
             		fileoutputstream.close();
             		
+            		musicPlayerService.allowPlayback();
+            		
             		activity.hideSpinner();
             		
-            		musicPlayerService.allowPlayback();
             		musicPlayerService.initializeSongAndPause(uri);
             		songUri = musicPlayerService.getCurrentTrackUri();
             		
@@ -234,13 +203,25 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		musicPlayerService.play();
             	}
             	
+            	else if (packetType[0] == REQUEST_SEEK_TO) {
+                	Log.d("client log", "client requested seek to");
+                	byte[] packet = new byte[5];
+                	packet[0] = SEEK_TO;
+                	byte[] millisecondsArray = new byte[4];
+                	int milliseconds = musicPlayerService.getCurrentPosition();
+                	millisecondsArray = intToByteArray(milliseconds);
+                	for (int i=1; i<5; i++) {
+                		packet[i] = millisecondsArray[i-1];
+                	}
+                	outputStream.write(packet);
+                	Log.d("client log", "sent seek to packet to server");
+            	}
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
             		Log.d("client log", "received stop playback message from server");
             		musicPlayerService.pause();
             	}
             	
-            
             	else {
             		Log.d("client log", "invalid packet type received");
             	}
@@ -293,18 +274,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
     		}
     }
     
-    public void sendRequestRequestSeekTo() {
-		long timeBeginningReqReqSeekTo = System.currentTimeMillis();
-    	byte[] packet = new byte[1];
-    	packet[0] = ANTICIPATE_SEEK_TO;
-    	try {
-			outputStream.write(packet);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-    	Log.d("total delay log", "broadcasted request request seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningReqReqSeekTo).toString());
-    }
-    
     public void sendSong() {
     	// get current track file from musicPlayerService
     	songUri = musicPlayerService.getCurrentTrackUri();
@@ -312,7 +281,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
     	FileInputStream songFileinputstream;
     	File songfile;
     	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-    		songfile = new File(getPath(songUri));
+    		songfile = new File(uriManager.getPath(songUri));
     	}
     	else {
     		songfile = new File(uriManager.getPath(context, songUri));
@@ -336,8 +305,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
     		packet[i] = length[i-1];
     	}
     	for (int i=5; i<8; i++) {
-    	
-	packet[i] = fileExtension[i-5];
+    		packet[i] = fileExtension[i-5];
     	}
     	for (int i=8; i<songByteLength+8; i++) {
     		packet[i] = songByteArray[i-8];
@@ -349,18 +317,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-    }
-    
-    private final synchronized String getPath(Uri uri) {
-        String res = null;
-        String[] proj = { MediaStore.Audio.Media.DATA };
-        Cursor cursor = context.getContentResolver().query(uri, proj, null, null, null);
-        if (cursor.moveToFirst()) {
-            int column_index = cursor .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-            res = cursor.getString(column_index);
-        }
-        cursor.close();
-        return res;
     }
     
     private File createFile(String FileType){

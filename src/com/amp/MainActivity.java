@@ -49,7 +49,7 @@ import com.amp.AudioService.LocalBinder;
 
 
 public class MainActivity extends Activity implements OnSeekBarChangeListener, GroupAddressDialog.GroupAddressDialogListener {
-	
+
 	static final String SELECTED_SONG = "selectedSong";
 	private static final int SELECT_SONG = 1;
 	private boolean masterMode;
@@ -80,8 +80,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
     protected PeerListListener myPeerListListener;
     private ArrayList <WifiP2pDevice> devices = new ArrayList<WifiP2pDevice>();
     private String currentGroupAddress;
-//    private ServerAsyncTask server = null;
-//    private ClientAsyncTask client = null;
     private AtomicBoolean reloadUI = new AtomicBoolean(false);
     private AtomicBoolean showSpinner = new AtomicBoolean(false);
     private URIManager uriManager;
@@ -102,13 +100,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		
+
 		uriManager = new URIManager(this);
-		
+
 		// change color of action bar
 		ActionBar bar = getActionBar();
 		bar.setBackgroundDrawable(new ColorDrawable(Color.parseColor("#3f9fe0")));
-		
+
 		groupAddressView = (TextView) findViewById(R.id.groupAddress);
 		viewSwitcher = (ViewFlipper) findViewById(R.id.viewSwitcher);
 		musicProgress = (SeekBar) findViewById(R.id.musicProgress);
@@ -123,43 +121,35 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		        if (musicPlayerService.isPlaying()) {
 		        	playPause.setBackgroundResource(R.drawable.btn_play);
 		        	musicPlayerService.pause();
-	        		
+
 		        	if (masterMode) {
-//	        		if (masterMode && server != null) {
 	        			musicPlayerService.serverBroadcastPause();
-//	        			server.broadcastPause(-1);
 	        		}
 		        	else {
-//	        		else if (!masterMode && client != null) {
 	        			musicPlayerService.clientSendPause();
-//	        			client.sendPause();
 	        		}
 		        }
 		        else {
 		        	playPause.setBackgroundResource(R.drawable.btn_pause);
-//		        	musicPlayerService.iterativePlay();
 		        	musicPlayerService.play();
-		        	
+
 		        	if (masterMode) {
-//		        	if (masterMode && server != null) {
 		        		musicPlayerService.serverBroadcastPlay();
-//	        			server.broadcastPlay(-1);
 	        		}
 		        	else  {
-//		        	else if (!masterMode && client != null) {
 		        		musicPlayerService.clientSendPlay();
 	        		}
 		        }
 		    }
 		});
-		
+
 		intentType = getIntent().getStringExtra(SplashScreenActivity.GROUP_ACTION_EXTRA);
-		
+
 		if (savedInstanceState != null) {
 	        // Restore value of members from saved state
 	    	selectedSongUriString = savedInstanceState.getString(SELECTED_SONG);
 	    }
-		
+
 		if (intentType.equals(SplashScreenActivity.CREATE_GROUP_EXTRA)) {
 			masterMode = true;
 			selectedSongUriString = getIntent().getStringExtra(SplashScreenActivity.SELECTED_SONG_URI_EXTRA);
@@ -174,21 +164,19 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 				viewSwitcher.setDisplayedChild(1);
 			}
 		}
-	    
+
 	    if(!AudioService.isServiceStarted()) {
 	  		Intent intent = new Intent(this, AudioService.class);
 	  		startService(intent);
 		}
-	    
+
 	    bindToMusicPlayerService();
-	    
+
 		setupWidgets(selectedSongUriString);
-		
-//		if(ticker == null && AudioService.isServiceStarted()) {
-    		ticker = new Ticker();
-			ticker.start();
-//    	}
-		
+
+    	ticker = new Ticker();
+		ticker.start();
+
 	    mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
 	    mChannel = mManager.initialize(this, getMainLooper(), null);
 	    mReceiver = new WiFiDirectBroadcastReceiver(mManager, mChannel, this);	    
@@ -197,16 +185,16 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
 	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
 	    mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
-	    
+
 		mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
-			
+
 		    @Override
 		    public void onSuccess() {
 		    	mManager.requestPeers(mChannel, new PeerListListener(){
 		    		@Override
 		    		public void onPeersAvailable(WifiP2pDeviceList peerList){
 		    			devices = new ArrayList<WifiP2pDevice> (peerList.getDeviceList());
-		  			    	
+
 		    			if (devices.size() > 0) {
 		    				Toast.makeText(getApplicationContext(), "Nearby device(s) found", Toast.LENGTH_SHORT).show();
 		    			}
@@ -216,12 +204,12 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		    		}
 		    	});
 		    }
-	
+
 		    @Override
 		    public void onFailure(int reasonCode) {
 		    }
 		});
-		
+
 		if (masterMode) {
 			mManager.createGroup(mChannel, new WifiP2pManager.ActionListener(){
     			
@@ -230,8 +218,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
     				connected = true;
     				Toast.makeText(getApplicationContext(), "Group Created", Toast.LENGTH_SHORT).show();
     				musicPlayerService.startServer(MainActivity.this);
-//					server = (ServerAsyncTask) new ServerAsyncTask(getApplicationContext(), musicPlayerService, MainActivity.this);
-//					server.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
     			}
     			
     			@Override
@@ -241,40 +227,39 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
     			}
     		});
 		}
-		
+
 		else{
-			
 		}
-	
+
 	}
-	
+
 	@Override
 	public void onPause() {
 		super.onPause();
-		
+
 		if (ticker != null) {
 			ticker.stopTicker();
 			ticker = null;
 		}
-		
+
 	    unregisterReceiver(mReceiver);
 	}
-	
-	
+
+
 	@Override
 	public void onResume() {
 		super.onResume();
-		
+
 		bindToMusicPlayerService();
-		
+
 		registerReceiver(mReceiver, mIntentFilter);
-		
+
 		if (ticker == null && AudioService.isServiceStarted()) {
 			ticker = new Ticker();
 			ticker.start();
 		}
 	}
-	
+
 	@Override
 	public void onSaveInstanceState(Bundle savedInstanceState) {
 	    // Save the user's current state
@@ -301,10 +286,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	    	menu.findItem(R.id.joinGroup).setVisible(false);
 	    	menu.findItem(R.id.exitGroup).setVisible(false);
 	    }
-	    
+
 	    return super.onCreateOptionsMenu(menu);
 	}
-	
+
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 	    // Handle item selection
@@ -323,13 +308,13 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	    			public void onSuccess() {
 	    	        	Toast.makeText(getApplicationContext(), R.string.toast_exited_group, Toast.LENGTH_SHORT).show();
 	    			}
-	        		
+
 	    			@Override
 	    			public void onFailure(int reason) {
 	    			}
-	    			
+
 	    		});
-	        	
+
 	        	mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
 
 	    			@Override
@@ -339,13 +324,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 
 	    			@Override
 	    			public void onSuccess() {
-	    				
+
 	    				//TODO: PROPERLY HANDLE LEAVING GROUP
 	    				musicPlayerService.disconnectClient();
-//	    				if (client != null) {
-//	    					client.cancelTask();
-//	    				}
-	    				
+
 	    				connected = false;
 	    				Toast.makeText(getApplicationContext(), "Exited Group", Toast.LENGTH_SHORT).show();
 	    				groupAddressView.setVisibility(View.GONE);
@@ -355,20 +337,20 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	            return true;
 	        case R.id.joinGroup:
 	        	showDialog();
-	        	
+
 	        	return true;
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }
 	}
-	
+
 	@Override 
 	protected void onActivityResult(int requestCode,int resultCode,Intent data){
 
 	  if(requestCode == 1) {
 
 	    if(resultCode == RESULT_OK){
-	    	
+
 	    	if (viewSwitcher.getDisplayedChild() == 1 || viewSwitcher.getDisplayedChild() == 2) {
 				viewSwitcher.setDisplayedChild(0);
 			}
@@ -377,24 +359,19 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	    	selectedSongUri = data.getData(); 
 	    	selectedSongUriString = selectedSongUri.toString();
 	    	musicPlayerService.initializeSong(selectedSongUri);
-	    	
+	    	setupWidgets(selectedSongUriString);
+
 	    	if (masterMode) {
-//	    	if (masterMode && server != null) {
 	    		musicPlayerService.serverBroadcastSong();
-//    			server.broadcastSong(-1);
     		}
 	    	else {
-//    		else if (!masterMode && client != null) {
 	    		musicPlayerService.clientSendSong();
-//    			client.sendSong();
     		}
-	    	
-	    	setupWidgets(selectedSongUriString);
 	    }
 	  }
 	  super.onActivityResult(requestCode, resultCode, data);
 	}
-	
+
 	private void setupWidgets(String songUriString) {
 		if (songUriString != null && !songUriString.equals("")) {
 			if (reloadUI.get() == false) {
@@ -403,7 +380,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 			else {
 				selectedSongUri = musicPlayerService.getCurrentTrackUri();
 			}
-			
+
 	        metaRetriver = new MediaMetadataRetriever();
 	        try {
 	        	if (reloadUI.get() == false) {
@@ -432,10 +409,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
  	        	else {
  	        		albumArtView.setImageDrawable(getResources().getDrawable(R.drawable.no_cover));
  	        	}
-	            
+
 	            String songTitleText = metaRetriver.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
 	            songTitleView.setText(songTitleText);
-	            
+
 	            if (songTitleText == null) {
 	            	songTitleView.setVisibility(View.GONE);
 	            }
@@ -450,12 +427,12 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	        }
 		}
 	}
-	
+
 	private void bindToMusicPlayerService() {
 		Intent intent = new Intent(this, AudioService.class);
 		bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 	}
-	
+
 	private ServiceConnection mConnection = new ServiceConnection() {
 
 		@Override
@@ -477,7 +454,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 			musicPlayerService = null;
 		}
 	}; 
-	
+
 	private void unbindToMusicPlayerService() {
 
 		if(musicPlayerService != null) {
@@ -485,7 +462,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 			musicPlayerService = null;
 		}
 	}
-	
+
 	private class Ticker extends Thread {
     	TickerRunnable runnable = null;
     	
@@ -502,7 +479,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
     		runnable.stopTicker();
     	}
     }
-	
+
 	private class TickerRunnable implements Runnable {
 	   	private final int TICKER_TIME = 100;
     	
@@ -521,15 +498,15 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	    		} catch (Exception e) {
 	    			return;
 	    		}
-	
+
 	    		handler.post(new Runnable() {
 	    			@Override
 	    			public void run() {
-	    				
+
 	    				if (showSpinner.get() == true) {
     						viewSwitcher.setDisplayedChild(2);
 	    				}
-	    				
+
 	    				if (musicPlayerService != null) {
 	    					if (!musicPlayerService.isPlaying()) {
 		    		        	playPause.setBackgroundResource(R.drawable.btn_play);
@@ -538,11 +515,11 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		    					playPause.setBackgroundResource(R.drawable.btn_pause);
 		    				}
 	    				}
-	    				
+
 	    				if (!groupInfoChanged) {
-	    					
+
 	    					mManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener(){ 
-		    					
+
 								@Override
 								public void onGroupInfoAvailable(WifiP2pGroup group) {
 									if (group != null) {
@@ -550,14 +527,14 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 										groupAddressView.setText("Group Address: " + currentGroupAddress);
 										groupAddressView.setVisibility(View.VISIBLE);
 										groupInfoChanged = true;
-										
+
 									}
 								}
 		    				});
-	    					
-	    			
+
+
 	    				}
-	    				
+
 	    				if(!canceled) {
 	    					if (musicPlayerService != null) {
 	    						if (musicPlayerService.isPlaying()) {
@@ -582,11 +559,11 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
     		canceled = true;
     	}
 	}
-	
+
 	private void setPositionTrackerWidgets() {
 		musicProgress.setMax(musicPlayerService.getDuration());
 		musicProgress.setProgress(musicPlayerService.getPosition());
-			
+
 		Integer minutesPlayed = (musicPlayerService.getPosition() % 3600) / 60;
 		StringBuilder minutesPlayedString = new StringBuilder();
 		minutesPlayedString.append(minutesPlayed.toString());
@@ -598,7 +575,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 			secondsPlayedString.insert(0, "0");
 		}
 		timePlayed.setText(minutesPlayedString + ":" + secondsPlayedString);
-		
+
 		Integer timeRemaining = musicPlayerService.getDuration() - musicPlayerService.getPosition();
 		Integer minutesLeft = (timeRemaining % 3600) / 60;
 		StringBuilder minutesLeftString = new StringBuilder();
@@ -615,29 +592,25 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 
 	@Override
 	public void onProgressChanged(SeekBar musicProgress, int arg1, boolean arg2) {
-		
+
 	}
 
 	@Override
 	public void onStartTrackingTouch(SeekBar musicProgress) {
-		
+
 	}
 
 	@Override
 	public void onStopTrackingTouch(SeekBar musicProgress) {
 		musicProgress.setProgress(musicProgress.getProgress());
 		if (musicPlayerService != null && musicPlayerService.isPlaying()) {
-			
+
 			musicPlayerService.seekTo(musicProgress.getProgress()*1000);
 			if (masterMode) {
-//			if (masterMode && server != null) {
-				musicPlayerService.serverBroadcastRequestRequestSeekTo();
-//    			server.broadcastSeekTo(-1);
+				musicPlayerService.serverBroadcastSeekTo();
     		}
 			else {
-//        	else if (!masterMode && client != null) {
-				musicPlayerService.clientSendRequestRequestSeekTo();
-//    			client.sendSeekTo();
+				musicPlayerService.clientSendSeekTo();
     		}
 		}
 	}
@@ -647,27 +620,27 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
         DialogFragment dialog = new GroupAddressDialog();
         dialog.show(getFragmentManager(), "ConnectDialog");
     }
-	
+
 	public void toastClientConnected() {
 		Toast.makeText(getApplicationContext(), "User joined group",Toast.LENGTH_SHORT).show();
 	}
-	
+
 	public void toastClientDisconnected() {
 		Toast.makeText(getApplicationContext(), "User left group",Toast.LENGTH_SHORT).show();
 	}
-	
+
 	public void toastConnectedToServer() {
 		Toast.makeText(getApplicationContext(), "Joined group",Toast.LENGTH_SHORT).show();
 	}
-	
+
 	@Override
 	public void onReturnValue(final String MACAddress) {
-		
+
 		if (MACAddress.equals("")) {
 			Toast.makeText(getApplicationContext(), "Invalid address",Toast.LENGTH_SHORT).show();
 			return;
 		}
-		
+
 		mManager.requestPeers(mChannel, new PeerListListener(){
     		@Override
     		public void onPeersAvailable(WifiP2pDeviceList peerList){
@@ -688,7 +661,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
         				mManager.connect(mChannel, config, new ActionListener() {
         					@Override
         					public void onSuccess() {
-//        						Toast.makeText(getApplicationContext(), "Connected to: " + config.deviceAddress,Toast.LENGTH_SHORT).show();
         						connected = true;
         						invalidateOptionsMenu();
         						recursivelyInitializeServerConnection(mManager);
@@ -710,41 +682,25 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
     			}		            
     		}
     	});
-		
+
 	}
-	
-//	@Override
-//	public void onStop(){
-//		super.onStop();
-//		
-//		mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
-//
-//			@Override
-//			public void onFailure(int reason) {
-//			}
-//
-//			@Override
-//			public void onSuccess() {	
-//			}
-//		});
-//	}
-	
+
 	@Override
 	public void onDestroy(){
 		super.onDestroy();
-		
+
 		if (ticker != null) {
 			ticker.stopTicker();
 			ticker = null;
 		}
-		
+
 		if (AudioService.isServiceStarted()) {
 			musicPlayerService.cancelServerAndClientTasks();
 			musicPlayerService.releasePlayer();
 			stopService(new Intent(this, AudioService.class));
 			unbindToMusicPlayerService();
 		}
-		
+
 		mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
 
 			@Override
@@ -755,19 +711,11 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 			public void onSuccess() {	
 			}
 		});
-		
-//		if (client != null) {
-//			client.cancelTask();
-//		}
-//		
-//		if (server != null) {
-//			server.cancelTask();
-//		}
-		
+
 		final File f = new File(Environment.getExternalStorageDirectory() + "/" + "Amp" + "/Shared Songs/");
 		deleteRecursively(f);
 	}
-	
+
 	private void deleteRecursively(File file) {
 		if (file.isDirectory()) {
 			for (File child : file.listFiles()) {
@@ -776,7 +724,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		}
 		file.delete();
 	}
-	
+
 	public void recursivelyInitializeServerConnection(WifiP2pManager manager){
 		mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener(){
 
@@ -787,13 +735,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 				}
 				else {
 					musicPlayerService.startClient(info.groupOwnerAddress.getHostAddress(), MainActivity.this);
-//					client = new ClientAsyncTask(getApplicationContext(), musicPlayerService, info.groupOwnerAddress.getHostAddress(), MainActivity.this);
-//					client.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 					servconnection = true;	
-//					Toast.makeText(getApplicationContext(), info.groupOwnerAddress.getHostAddress(), Toast.LENGTH_SHORT).show();
 				}
 			}
 		});
 	}
-	
+
 }

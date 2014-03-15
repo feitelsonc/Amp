@@ -11,7 +11,7 @@ import android.view.View;
 import android.widget.EditText;
 
 public class GroupAddressDialog extends DialogFragment {
-	
+
     /* The activity that creates an instance of this dialog fragment must
      * implement this interface in order to receive event callbacks.
      * Each method passes the DialogFragment in case the host needs to query it. */
