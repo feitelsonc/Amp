@@ -113,7 +113,8 @@ public class AudioService extends Service {
 	public void initializeSong(Uri uri) {
 		currentSongUri = uri;
 
-		player.release();
+		player.reset();
+//		player.release();
 		player = new MediaPlayer();
 		try {
 			player.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -129,7 +130,8 @@ public class AudioService extends Service {
 	public void initializeSongAndPause(Uri uri) {
 		currentSongUri = uri;
 
-		player.release();
+//		player.release();
+		player.reset();
 		player = new MediaPlayer();
 		try {
 			player.setAudioStreamType(AudioManager.STREAM_MUSIC);
@@ -174,7 +176,13 @@ public class AudioService extends Service {
 	}
 
 	public boolean isPlaying() {
-		return player.isPlaying();
+		if (player != null) {
+			return player.isPlaying();
+		}
+		else {
+			return false;
+		}
+		
 	}
 
 	public int getPosition() {

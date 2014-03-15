@@ -109,7 +109,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
-//            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
             		musicPlayerService.seekTo(milliseconds);
             	}
             	
