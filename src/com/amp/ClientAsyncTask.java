@@ -12,7 +12,6 @@ import java.util.Calendar;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
@@ -47,7 +46,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
         this.musicPlayerService = musicPlayerService;
         this.server = host;
         this.activity = activity;
-        this.uriManager = new URIManager(context);
+        this.uriManager = new URIManager();
     }
     
     public void cancelTask() {
@@ -109,7 +108,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
-            		musicPlayerService.seekTo(milliseconds);
+            		musicPlayerService.seekToNew(milliseconds);
             	}
             	
             	else if (packetType[0] == WELCOME){
@@ -279,12 +278,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
     	
     	FileInputStream songFileinputstream;
     	File songfile;
-    	if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-    		songfile = new File(uriManager.getPath(context, songUri));
-    	}
-    	else {
-    		songfile = new File(uriManager.getPath(context, songUri));
-    	}
+    	songfile = new File(uriManager.getPath(context, songUri));
     	try {
     		songFileinputstream = new FileInputStream(songfile);
     		songByteLength = (int) songfile.length();

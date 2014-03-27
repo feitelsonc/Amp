@@ -170,8 +170,27 @@ public class AudioService extends Service {
 			long timeBeforePlay = System.currentTimeMillis();
 			player.start();
 			long timeAfterPlay = System.currentTimeMillis();
-			iterativeSeekTo(player.getCurrentPosition()+(int)(timeAfterPlay-timeBeforePlay));
-			Log.d("audio log", "Play delay: " + Long.valueOf(timeAfterPlay-timeBeforePlay).toString());
+			long delay = timeAfterPlay-timeBeforePlay;
+			Log.d("audio log", "Play delay: " + Long.valueOf(delay).toString());
+			if ((delay) > 1) {
+				seekToNew(player.getCurrentPosition()+(int)(delay));
+			}
+		}
+	}
+	
+	public void seekToNew(int milliseconds) {
+		if (!playbackStopped) {
+			long timeBeforeSeekTo = System.currentTimeMillis();
+			player.seekTo(milliseconds);
+			long timeAfterSeekTo = System.currentTimeMillis();
+			long delay = timeAfterSeekTo-timeBeforeSeekTo;
+			Log.d("audio log", "SeekToNew delay: " + Long.valueOf(delay).toString());
+			if (delay > 2) {
+				seekToNew(player.getCurrentPosition()+(int)(delay));
+			}
+			else {
+				return;
+			}
 		}
 	}
 
@@ -197,68 +216,68 @@ public class AudioService extends Service {
 		return player.getDuration()/1000;
 	}
 
-	public long seekTo(int milliseconds) {
-		if (!playbackStopped) {
-
-			long timeBeforeSeek = System.currentTimeMillis();
-			player.seekTo(milliseconds);
-			long timeAfterSeek = System.currentTimeMillis();
-			long difference = timeAfterSeek-timeBeforeSeek;
-			Log.d("audio log", "seek delay: " + Long.valueOf(timeAfterSeek-timeBeforeSeek).toString());
-			return difference;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-
-
-	public void iterativeSeekTo(int milliseconds) {
-		long difference = System.currentTimeMillis();
-		player.seekTo(milliseconds);
-		difference = System.currentTimeMillis()-difference;
-		iterativeSeekTo(milliseconds, difference);					
-	}
-
-	public void iterativeSeekTo(int milliseconds,long delay) {
-		long differenceOfThisOperations = System.currentTimeMillis();
-		if(delay<5 && delay >-5)
-		{
-			return;
-		}
-		int nextdelayestimation=0;
-		int delayguess=0;
-		long differenceOfMediaPlayer;
-		if (delay>5)
-		{
-		nextdelayestimation = (int)delay*(1/5);
-		delayguess = nextdelayestimation+(int)delay; 		
-		}
-		else
-		{
-		//in this case delay is negative because we OVERSHOT our estimation.
-		nextdelayestimation = (int)delay*(-1/5);
-		delayguess = nextdelayestimation+(int)delay;
-		}
-
-
-		differenceOfThisOperations = System.currentTimeMillis()-differenceOfThisOperations;
-		delayguess +=differenceOfThisOperations;
-		//add this version of difference to the guess.
-
-		differenceOfMediaPlayer = System.currentTimeMillis();
-		player.seekTo(milliseconds+(delayguess));
-		differenceOfMediaPlayer = System.currentTimeMillis()-differenceOfMediaPlayer;
-		//Log.d("audio log", "seek delay: " + Long.valueOf(timeAfterSeek-timeBeforeSeek).toString());
-		//return difference;
-		/*IN CHECKING THE DELAY OF THE IF LOOP REQUIRED FOR ITERATION, FOUND MOSTLY 0 DELAY EVEN FOR SLOW PHONES, NOT NEGLIGIBLE OVER MANY CALLS, THUS
-		 * WE TRY TO MINIMIZE CALLS WITH ERROR PREDICITON.
-		 */
-		//long newdelay = System.currentTimeMillis();
-		delay = (int)differenceOfMediaPlayer+differenceOfThisOperations+delay-(delayguess);	
-		iterativeSeekTo(milliseconds+(delayguess),delay);			
-	}
+//	public long seekTo(int milliseconds) {
+//		if (!playbackStopped) {
+//
+//			long timeBeforeSeek = System.currentTimeMillis();
+//			player.seekTo(milliseconds);
+//			long timeAfterSeek = System.currentTimeMillis();
+//			long difference = timeAfterSeek-timeBeforeSeek;
+//			Log.d("audio log", "seek delay: " + Long.valueOf(timeAfterSeek-timeBeforeSeek).toString());
+//			return difference;
+//		}
+//		else
+//		{
+//			return 0;
+//		}
+//	}
+//
+//
+//	public void iterativeSeekTo(int milliseconds) {
+//		long difference = System.currentTimeMillis();
+//		player.seekTo(milliseconds);
+//		difference = System.currentTimeMillis()-difference;
+//		iterativeSeekTo(milliseconds, difference);					
+//	}
+//
+//	public void iterativeSeekTo(int milliseconds,long delay) {
+//		long differenceOfThisOperations = System.currentTimeMillis();
+//		if(delay<5 && delay >-5)
+//		{
+//			return;
+//		}
+//		int nextdelayestimation=0;
+//		int delayguess=0;
+//		long differenceOfMediaPlayer;
+//		if (delay>5)
+//		{
+//		nextdelayestimation = (int)delay*(1/5);
+//		delayguess = nextdelayestimation+(int)delay; 		
+//		}
+//		else
+//		{
+//		//in this case delay is negative because we OVERSHOT our estimation.
+//		nextdelayestimation = (int)delay*(-1/5);
+//		delayguess = nextdelayestimation+(int)delay;
+//		}
+//
+//
+//		differenceOfThisOperations = System.currentTimeMillis()-differenceOfThisOperations;
+//		delayguess +=differenceOfThisOperations;
+//		//add this version of difference to the guess.
+//
+//		differenceOfMediaPlayer = System.currentTimeMillis();
+//		player.seekTo(milliseconds+(delayguess));
+//		differenceOfMediaPlayer = System.currentTimeMillis()-differenceOfMediaPlayer;
+//		//Log.d("audio log", "seek delay: " + Long.valueOf(timeAfterSeek-timeBeforeSeek).toString());
+//		//return difference;
+//		/*IN CHECKING THE DELAY OF THE IF LOOP REQUIRED FOR ITERATION, FOUND MOSTLY 0 DELAY EVEN FOR SLOW PHONES, NOT NEGLIGIBLE OVER MANY CALLS, THUS
+//		 * WE TRY TO MINIMIZE CALLS WITH ERROR PREDICITON.
+//		 */
+//		//long newdelay = System.currentTimeMillis();
+//		delay = (int)differenceOfMediaPlayer+differenceOfThisOperations+delay-(delayguess);	
+//		iterativeSeekTo(milliseconds+(delayguess),delay);			
+//	}
 
 	Uri getCurrentTrackUri() {
 		return currentSongUri;
