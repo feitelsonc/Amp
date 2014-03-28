@@ -12,12 +12,6 @@ import android.provider.MediaStore;
 
 public class URIManager {
 	
-	private Context context;
-	
-	public URIManager(Context context) {
-		this.context = context;
-    }
-	
 	// The following URI methods are from http://stackoverflow.com/questions/20067508/get-real-path-from-uri-android-kitkat-new-storage-access-framework
     /**
      * Get a file path from a Uri. This will get the the path for Storage Access
@@ -28,19 +22,6 @@ public class URIManager {
      * @param uri The Uri to query.
      * @author paulburke
      */
-    @SuppressLint("NewApi")
-    
-    public String getPath(Uri uri) {
-        String res = null;
-        String[] proj = { MediaStore.Audio.Media.DATA };
-        Cursor cursor = context.getContentResolver().query(uri, proj, null, null, null);
-        if (cursor.moveToFirst()) {
-            int column_index = cursor .getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
-            res = cursor.getString(column_index);
-        }
-        cursor.close();
-        return res;
-    }
     
 	@SuppressLint("NewApi")
 	public String getPath(final Context context, final Uri uri) {

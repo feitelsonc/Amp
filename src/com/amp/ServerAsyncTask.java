@@ -53,7 +53,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
         this.musicPlayerService = musicPlayerService;
         this.songUri = musicPlayerService.getCurrentTrackUri();
         this.activity = activity;
-        this.uriManager = new URIManager(context);
+        this.uriManager = new URIManager();
     }
     
     public void cancelTask() {
@@ -123,7 +123,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		long delay = System.currentTimeMillis()-timeBeginningLoop;
 //            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
             		musicPlayerService.play();
-            		musicPlayerService.seekTo(milliseconds);
+            		musicPlayerService.seekToNew(milliseconds);
             		broadcastSeekTo(i);
             		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
             	}
@@ -147,12 +147,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		
             		FileInputStream songFileinputstream;
             		File songfile;
-            		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            			songfile = new File(uriManager.getPath(songUri));
-            		}
-            		else {
-            			songfile = new File(uriManager.getPath(context, songUri));
-            		}
+            		songfile = new File(uriManager.getPath(context, songUri));
                 	try {
                 		songFileinputstream = new FileInputStream(songfile);
                 		songByteLength = (int) songfile.length();

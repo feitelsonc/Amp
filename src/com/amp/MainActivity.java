@@ -101,7 +101,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-		uriManager = new URIManager(this);
+		uriManager = new URIManager();
 
 		// change color of action bar
 		ActionBar bar = getActionBar();
@@ -605,7 +605,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		musicProgress.setProgress(musicProgress.getProgress());
 		if (musicPlayerService != null && musicPlayerService.isPlaying()) {
 
-			musicPlayerService.seekTo(musicProgress.getProgress()*1000);
+			musicPlayerService.seekToNew(musicProgress.getProgress()*1000);
 			if (masterMode) {
 				musicPlayerService.serverBroadcastSeekTo();
     		}
