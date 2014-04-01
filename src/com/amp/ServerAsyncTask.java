@@ -195,39 +195,23 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		FileOutputStream fileoutputstream = new FileOutputStream(file);
             		fileoutputstream.write(songByteArray);
             		fileoutputstream.close();
-            		
-            		Log.d("server log", "1");
-            		
+            		            		
             		musicPlayerService.allowPlayback();
-            		
-            		Log.d("server log", "2");
-            		
+            		            		
             		activity.hideSpinner();
-            		
-            		Log.d("server log", "3");
-            		
+            		            		
             		musicPlayerService.initializeSongAndPause(uri);
-            		
-            		Log.d("server log", "4");
-            		
+            		            		
             		songUri = musicPlayerService.getCurrentTrackUri();
             		
-            		Log.d("server log", "5");
             		// update activity UI
             		activity.reloadUI();
-            		
-            		Log.d("server log", "6");
-            		
+            		            		
             		broadcastSong(i);  
-            		
-            		Log.d("server log", "7");
-            		
+            		            		
             		// request playback location of file
             		messageType[0] = REQUEST_SEEK_TO;
-            		Log.d("server log", "8");
             		outputStream.write(messageType);
-            		
-            		Log.d("server log", "9");
             	}
             	
             	else if (packetType[0] == PAUSE) {
@@ -326,12 +310,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
 
 		FileInputStream songFileinputstream;
 		File songfile;
-		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-			songfile = new File(uriManager.getPath(context, songUri));
-		}
-		else {
-			songfile = new File(uriManager.getPath(context, songUri));
-		}
+		songfile = new File(uriManager.getPath(context, songUri));
     	try {
     		songFileinputstream = new FileInputStream(songfile);
     		songByteLength = (int) songfile.length();
