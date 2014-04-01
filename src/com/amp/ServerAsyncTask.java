@@ -105,9 +105,11 @@ public class ServerAsyncTask extends Thread implements Runnable {
 
             	if (isTaskCancelled) {
             		broadcastStopPlayback(-1);
+            		broadcastDisconnect();
             		for (int i2=0; i2<numClients; i2++) {
             			dictionary.get(Integer.valueOf(i2)).close();          			
             		}
+            		return;
                 }
 
             	// Reads the first byte of the packet to determine packet type
@@ -123,7 +125,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		long delay = System.currentTimeMillis()-timeBeginningLoop;
 //            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
             		musicPlayerService.play();
-            		musicPlayerService.seekToNew(milliseconds);
+            		musicPlayerService.seekToNew(milliseconds, 1);
             		broadcastSeekTo(i);
             		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
             	}
@@ -292,6 +294,13 @@ public class ServerAsyncTask extends Thread implements Runnable {
     	messageType[0] = STOP_PLAYBACK;
     	sendToClients(messageType, clientOriginator);
     	Log.d("server log", "broadcasted stop");
+    }
+    
+    public void broadcastDisconnect() {
+    	byte[] messageType = new byte[1];
+    	messageType[0] = DISCONNECT;
+    	sendToClients(messageType, -1);
+    	Log.d("server log", "broadcasted disconnect");
     }
     
     public void broadcastSong(int clientOriginator) {

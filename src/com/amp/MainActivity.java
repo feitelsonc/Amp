@@ -82,7 +82,12 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
     private String currentGroupAddress;
     private AtomicBoolean reloadUI = new AtomicBoolean(false);
     private AtomicBoolean showSpinner = new AtomicBoolean(false);
+    private AtomicBoolean serverLeft = new AtomicBoolean(false);
     private URIManager uriManager;
+    
+    public void removePlayerUI() {
+    	serverLeft.set(true);
+    }
     
     public void reloadUI() {
     	reloadUI.set(true);
@@ -506,6 +511,27 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	    				if (showSpinner.get() == true) {
     						viewSwitcher.setDisplayedChild(2);
 	    				}
+	    				
+	    				if (serverLeft.get() == true) {
+	    					viewSwitcher.setDisplayedChild(1);
+	    					groupAddressView.setVisibility(View.GONE);
+	    					serverLeft.set(false);
+	    					musicPlayerService.cancelServerAndClientTasks();
+	    					mManager.removeGroup(mChannel, new WifiP2pManager.ActionListener(){
+
+	    						@Override
+	    						public void onFailure(int reason) {
+	    						}
+
+	    						@Override
+	    						public void onSuccess() {
+	    							connected = false;
+	    						}
+	    					});
+	    					invalidateOptionsMenu();
+	    					
+	    					//TODO: properly handle switch actionBar buttons to reflect correct connection state
+	    				}
 
 	    				if (musicPlayerService != null) {
 	    					if (!musicPlayerService.isPlaying()) {
@@ -605,7 +631,7 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 		musicProgress.setProgress(musicProgress.getProgress());
 		if (musicPlayerService != null && musicPlayerService.isPlaying()) {
 
-			musicPlayerService.seekToNew(musicProgress.getProgress()*1000);
+			musicPlayerService.seekToNew(musicProgress.getProgress()*1000, 1);
 			if (masterMode) {
 				musicPlayerService.serverBroadcastSeekTo();
     		}

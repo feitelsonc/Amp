@@ -94,6 +94,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		messageType[0]=DISCONNECT;
             		outputStream.write(messageType);
             		socket.close();
+            		return;
                 }
             	
             	// Reads the first byte of the packet to determine packet type
@@ -108,7 +109,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
-            		musicPlayerService.seekToNew(milliseconds);
+            		musicPlayerService.seekToNew(milliseconds, 1);
             	}
             	
             	else if (packetType[0] == WELCOME){
@@ -220,6 +221,13 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		musicPlayerService.pause();
             	}
             	
+            	else if (packetType[0] == DISCONNECT) {
+            		Log.d("client log", "received DISCONECT message from server");
+            		musicPlayerService.pause();
+            		socket.close();
+            		activity.removePlayerUI();
+            	}
+            	
             	else {
             		Log.d("client log", "invalid packet type received");
             	}
@@ -307,6 +315,18 @@ public class ClientAsyncTask extends Thread implements Runnable {
     	try {
 			outputStream.write(packet);
 			Log.d("client log", "sent file message to server");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+    }
+    
+    public void sendDisconnect() {
+    	byte[] messageType = new byte[1];
+    	messageType[0] = DISCONNECT;
+    	try {
+			outputStream.write(messageType);
+			Log.d("client log", "sent disconnect message to server");
+			sendSeekTo();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

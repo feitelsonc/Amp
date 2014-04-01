@@ -102,11 +102,15 @@ public class AudioService extends Service {
 
 	public void cancelServerAndClientTasks() {
 		if (this.client != null) {
+			this.client.sendDisconnect();
 			this.client.cancelTask();
+			client = null;
 		}
 
 		if (this.server != null) {
+			this.server.broadcastDisconnect();
 			this.server.cancelTask();
+			server = null;
 		}
 	}
 
@@ -173,12 +177,16 @@ public class AudioService extends Service {
 			long delay = timeAfterPlay-timeBeforePlay;
 			Log.d("audio log", "Play delay: " + Long.valueOf(delay).toString());
 			if ((delay) > 1) {
-				seekToNew(player.getCurrentPosition()+(int)(delay));
+				seekToNew(player.getCurrentPosition()+(int)(delay), 1);
 			}
 		}
 	}
 	
-	public void seekToNew(int milliseconds) {
+	public void seekToNew(int milliseconds, int iteration) {
+		if (iteration >= 5) {
+			return;
+		}
+		
 		if (!playbackStopped) {
 			long timeBeforeSeekTo = System.currentTimeMillis();
 			player.seekTo(milliseconds);
@@ -186,7 +194,7 @@ public class AudioService extends Service {
 			long delay = timeAfterSeekTo-timeBeforeSeekTo;
 			Log.d("audio log", "SeekToNew delay: " + Long.valueOf(delay).toString());
 			if (delay > 2) {
-				seekToNew(player.getCurrentPosition()+(int)(delay));
+				seekToNew(player.getCurrentPosition()+(int)(delay), ++iteration);
 			}
 			else {
 				return;
