@@ -401,8 +401,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	        reloadUI.set(false);
 	        try {
 	        	// fix huge meta image art case
+	        	
 	        	albumArt = metaRetriver.getEmbeddedPicture();
- 	        	if (albumArt.length < 2000000) {
+	        	
+ 	        	if (albumArt.length < 200000) {
  	        		Bitmap songImage = BitmapFactory.decodeByteArray(albumArt, 0, albumArt.length);
  	        		if (albumArt != null) {
  		            	albumArtView.setImageBitmap(songImage);
