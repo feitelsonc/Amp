@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Calendar;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.content.Context;
 import android.net.Uri;
@@ -39,6 +40,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
     private int songByteLength;
     private boolean isTaskCancelled = false;
     private URIManager uriManager;
+    private AtomicBoolean sendSong = new AtomicBoolean(false);
     
     public ClientAsyncTask(Context context, AudioService musicPlayerService, String host, MainActivity activity) {
         this.context = context;

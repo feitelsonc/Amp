@@ -11,10 +11,10 @@ import java.net.Socket;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.content.Context;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Environment;
 import android.util.Log;
 
@@ -45,8 +45,11 @@ public class ServerAsyncTask extends Thread implements Runnable {
     private ServerSocket serverSocket;
     private ClientAccepter clientAcceptor = null;
     private URIManager uriManager;
-
+    private AtomicBoolean broadcastSong = new AtomicBoolean(false);
     
+    public void broadcastSong() {
+    	broadcastSong.set(true);
+    }
     
     public ServerAsyncTask(Context context, AudioService musicPlayerService, MainActivity activity) {
         this.context = context;
@@ -98,6 +101,12 @@ public class ServerAsyncTask extends Thread implements Runnable {
         	while (true) {
         	DataInputStream inputstream;
         	OutputStream outputStream;
+        	
+        	if (broadcastSong.get() == true) {
+        		broadcastSong.set(false);
+        		broadcastSong(-1);
+        	}
+        	
         	for (int i=0; i<numClients; i++) {
         		Socket client = dictionary.get(Integer.valueOf(i).toString());
         		inputstream = new DataInputStream(client.getInputStream());
