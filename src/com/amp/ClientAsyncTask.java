@@ -40,7 +40,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
     private boolean isTaskCancelled = false;
     private URIManager uriManager;
     
-    
     public ClientAsyncTask(Context context, AudioService musicPlayerService, String host, MainActivity activity) {
         this.context = context;
         this.musicPlayerService = musicPlayerService;
@@ -109,7 +108,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
-            		musicPlayerService.seekToNew(milliseconds, 1);
+            		musicPlayerService.seekTo(milliseconds, 1);
             	}
             	
             	else if (packetType[0] == WELCOME){
