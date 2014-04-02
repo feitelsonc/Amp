@@ -78,10 +78,10 @@ public class ServerAsyncTask extends Thread implements Runnable {
     }
     
     public long nanoToMilli(long nano){
-    	return nano*1000000;
+    	return nano/1000000;
     }
     public long milliToNano(long milli){
-    	return milli/1000000;
+    	return milli*1000000;
     }
     
     @Override
