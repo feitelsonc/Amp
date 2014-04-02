@@ -29,7 +29,8 @@ public class ServerAsyncTask extends Thread implements Runnable {
     private static final byte PLAY = 0x06;
     private static final byte SEEK_TO = 0x07;
     private static final byte STOP_PLAYBACK = 0x08;
-    private static final byte REQUEST_SEEK_TO = 0x09; 
+    private static final byte REQUEST_SEEK_TO = 0x09;
+    private static final byte SEEK_TO_NOTIFICATION = 0x10;
     
     
 	private AudioService musicPlayerService = null;
@@ -45,8 +46,8 @@ public class ServerAsyncTask extends Thread implements Runnable {
     private ServerSocket serverSocket;
     private ClientAccepter clientAcceptor = null;
     private URIManager uriManager;
-
-    
+    private long timeBeforeRequestSeekTo;
+    private long rtPropDelay;
     
     public ServerAsyncTask(Context context, AudioService musicPlayerService, MainActivity activity) {
         this.context = context;
@@ -78,10 +79,10 @@ public class ServerAsyncTask extends Thread implements Runnable {
     }
     
     public long nanoToMilli(long nano){
-    	return nano*1000000;
+    	return nano/1000000;
     }
     public long milliToNano(long milli){
-    	return milli/1000000;
+    	return milli*1000000;
     }
     
     @Override
@@ -130,7 +131,34 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
             		musicPlayerService.seekTo(milliseconds, 1);
-            		broadcastSeekTo(i);
+            		rtPropDelay = timeBeforeRequestSeekTo - nanoToMilli(System.nanoTime());
+            		if(rtPropDelay>5)
+            		{
+                		timeBeforeRequestSeekTo = nanoToMilli(System.nanoTime());
+                		byte[] packet = new byte[1];
+                		packet[0] = REQUEST_SEEK_TO;
+                		try {
+                		outputStream.write(packet);
+                		} catch (IOException e) {
+                		e.printStackTrace();
+                		}
+            		}
+            		else
+            		{
+            		broadcastSeekToNotification(i);
+            		}
+            	}
+            	
+            	else if (packetType[0]== SEEK_TO_NOTIFICATION){
+            		Log.d("server log", "received seek to notification packet from client");
+            		timeBeforeRequestSeekTo = nanoToMilli(System.nanoTime());
+            		byte[] packet = new byte[1];
+            		packet[0] = REQUEST_SEEK_TO;
+            		try {
+            		outputStream.write(packet);
+            		} catch (IOException e) {
+            		e.printStackTrace();
+            		}
             	}
             	
             	else if (packetType[0] == CONNECT) {
@@ -213,6 +241,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		broadcastSong(i);  
             		            		
             		// request playback location of file
+            		timeBeforeRequestSeekTo = nanoToMilli(System.nanoTime());
             		messageType[0] = REQUEST_SEEK_TO;
             		outputStream.write(messageType);
             	}
@@ -271,10 +300,11 @@ public class ServerAsyncTask extends Thread implements Runnable {
     	messageType[0] = PLAY;
     	sendToClients(messageType, clientOriginator);
     	Log.d("server log", "broadcasted play");
-    	broadcastSeekTo(clientOriginator);
+    	broadcastSeekToNotification(clientOriginator);
     }
     
-    public void broadcastSeekTo(int clientOriginator) {
+    //Deprecated method.
+    /*public void broadcastSeekTo(int clientOriginator) {
         	byte[] packet = new byte[5];
         	packet[0] = SEEK_TO;
         	byte[] millisecondsArray = new byte[4];
@@ -284,6 +314,12 @@ public class ServerAsyncTask extends Thread implements Runnable {
         		packet[i] = millisecondsArray[i-1];
         	}
         	sendToClients(packet, clientOriginator);
+    }*/
+    
+    public void broadcastSeekToNotification(int clientOriginator) {
+    	byte[] packet = new byte[1];
+    	packet[0] = SEEK_TO_NOTIFICATION;
+    	sendToClients(packet, clientOriginator);
     }
     
     public void broadcastStopPlayback(int clientOriginator) {

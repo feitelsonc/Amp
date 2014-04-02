@@ -63,9 +63,17 @@ public class AudioService extends Service {
 		}
 	}
 
-	public void serverBroadcastSeekTo() {
+	
+	//Deprecated method. Only works with corresponding deprecated method in server.
+	/*public void serverBroadcastSeekTo() {
 		if (server != null) {
 			this.server.broadcastSeekTo(-1);
+		}
+	}*/
+	
+	public void serverBroadcastSeekToNotification(){
+		if (server != null) {
+			this.server.broadcastSeekToNotification(-1);
 		}
 	}
 
@@ -97,6 +105,14 @@ public class AudioService extends Service {
 			this.client.sendSeekTo();
 		}
 	}
+	
+	
+	public void clientSendSeekToNotification() {
+		if (client != null) {
+			this.client.sendSeekToNotification();
+		}
+	}
+	
 
 	public void disconnectClient() {
 		if (this.client != null) {

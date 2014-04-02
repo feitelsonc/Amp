@@ -27,6 +27,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
     private static final byte SEEK_TO = 0x07;
     private static final byte STOP_PLAYBACK = 0x08;
     private static final byte REQUEST_SEEK_TO = 0x09; 
+    private static final byte SEEK_TO_NOTIFICATION = 0x10;
 
     private String server;
     private OutputStream outputStream;
@@ -39,6 +40,8 @@ public class ClientAsyncTask extends Thread implements Runnable {
     private int songByteLength;
     private boolean isTaskCancelled = false;
     private URIManager uriManager;
+    private long timeBeforeRequestSeekTo;
+    private long rtPropDelay;
     
     public ClientAsyncTask(Context context, AudioService musicPlayerService, String host, MainActivity activity) {
         this.context = context;
@@ -52,7 +55,13 @@ public class ClientAsyncTask extends Thread implements Runnable {
         isTaskCancelled = true;
     }
     
-
+    public long nanoToMilli(long nano){
+    	return nano/1000000;
+    }
+    public long milliToNano(long milli){
+    	return milli*1000000;
+    }
+    
     public static int byteArrayToInt(byte[] b) {
         return b[3] & 0xFF |
                (b[2] & 0xFF) << 8 |
@@ -99,7 +108,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             	// Reads the first byte of the packet to determine packet type
             	inputstream.readFully(packetType, 0, 1);
             	
-            	if (packetType[0] == SEEK_TO) {
+            	/*if (packetType[0] == SEEK_TO) {
             		
             		Log.d("client log", "received seek to message from server");
             		
@@ -109,6 +118,39 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
             		musicPlayerService.seekTo(milliseconds, 1);
+            	}*/
+            	if (packetType[0] == SEEK_TO) {
+            		Log.d("server log", "received seek to packet");
+            		int milliseconds = 0;
+            		byte[] millisecondsArray = new byte [4];
+            		inputstream.readFully(millisecondsArray, 0, 4);
+            		milliseconds = byteArrayToInt(millisecondsArray);
+            		musicPlayerService.play();
+            		musicPlayerService.seekTo(milliseconds, 1);
+            		rtPropDelay = timeBeforeRequestSeekTo - nanoToMilli(System.nanoTime());
+            		if(rtPropDelay>5)
+            		{
+                		timeBeforeRequestSeekTo = nanoToMilli(System.nanoTime());
+                		byte[] packet = new byte[1];
+                		packet[0] = REQUEST_SEEK_TO;
+                		try {
+                		outputStream.write(packet);
+                		} catch (IOException e) {
+                		e.printStackTrace();
+                		}
+            		}
+            	}
+            	
+            	else if (packetType[0]== SEEK_TO_NOTIFICATION){
+            		Log.d("server log", "received seek to notification packet from client");
+            		timeBeforeRequestSeekTo = nanoToMilli(System.nanoTime());
+            		byte[] packet = new byte[1];
+            		packet[0] = REQUEST_SEEK_TO;
+            		try {
+            		outputStream.write(packet);
+            		} catch (IOException e) {
+            		e.printStackTrace();
+            		}
             	}
             	
             	else if (packetType[0] == WELCOME){
@@ -186,6 +228,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		activity.reloadUI();
             		
             		// request playback location of file
+            		timeBeforeRequestSeekTo = nanoToMilli(System.nanoTime());
             		messageType[0] = REQUEST_SEEK_TO;
             		outputStream.write(messageType);
             		Log.d("client log", "sent request seek position message to server");
@@ -256,7 +299,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
     	try {
 			outputStream.write(messageType);
 			Log.d("client log", "sent play message to server");
-			sendSeekTo();
+			sendSeekToNotification();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -277,6 +320,16 @@ public class ClientAsyncTask extends Thread implements Runnable {
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
+    }
+    
+    public void sendSeekToNotification() {
+    	byte[] packet = new byte[1];
+    	packet[0] = SEEK_TO_NOTIFICATION;
+    	try {
+			outputStream.write(packet);    			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
     }
     
     public void sendSong() {
@@ -325,7 +378,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
     	try {
 			outputStream.write(messageType);
 			Log.d("client log", "sent disconnect message to server");
-			sendSeekTo();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
