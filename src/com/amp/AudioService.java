@@ -53,7 +53,7 @@ public class AudioService extends Service {
 
 	public void serverBroadcastSong() {
 		if (server != null) {
-			this.server.broadcastSong(-1);
+			this.server.broadcastSong();
 		}
 	}
 
