@@ -77,6 +77,13 @@ public class ServerAsyncTask extends Thread implements Runnable {
         };
     }
     
+    public long nanoToMilli(long nano){
+    	return nano*1000000;
+    }
+    public long milliToNano(long milli){
+    	return milli/1000000;
+    }
+    
     @Override
     public void run() {
         try {
@@ -89,7 +96,6 @@ public class ServerAsyncTask extends Thread implements Runnable {
         	clientAcceptor.start();
 
         	while (true) {
-        	long timeBeginningLoop = System.currentTimeMillis();
         	DataInputStream inputstream;
         	OutputStream outputStream;
         	for (int i=0; i<numClients; i++) {
@@ -122,12 +128,9 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		byte[] millisecondsArray = new byte [4];
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
-            		long delay = System.currentTimeMillis()-timeBeginningLoop;
-//            		musicPlayerService.iterativeSeekTo(milliseconds+(int)delay);
             		musicPlayerService.play();
             		musicPlayerService.seekToNew(milliseconds, 1);
             		broadcastSeekTo(i);
-            		Log.d("total delay log", "received seek to, delay (localendtoend): "+Long.valueOf(delay).toString());
             	}
             	
             	else if (packetType[0] == CONNECT) {
@@ -238,10 +241,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
                 	for (int i3=1; i3<5; i3++) {
                 		packet[i3] = millisecondsArray[i3-1];
                 	}
-                	long timeBeforeWritingToOutputStream = System.currentTimeMillis();
                 	outputStream.write(packet);
-                	Log.d("server log", "sent seek to packet to client, round trip propagation delay:" + Long.valueOf(System.currentTimeMillis()-timeBeforeWritingToOutputStream).toString());
-                	
             	}
             	
             	else if (packetType[0] == STOP_PLAYBACK) {
@@ -267,17 +267,14 @@ public class ServerAsyncTask extends Thread implements Runnable {
     }
     
     public void broadcastPlay(int clientOriginator) {
-    	long timeBeforeBroadcastPlay = System.currentTimeMillis();
     	byte[] messageType = new byte[1];
     	messageType[0] = PLAY;
     	sendToClients(messageType, clientOriginator);
     	Log.d("server log", "broadcasted play");
     	broadcastSeekTo(clientOriginator);
-    	Log.d("server log", "broadcast play method, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeforeBroadcastPlay).toString());
     }
     
     public void broadcastSeekTo(int clientOriginator) {
-    		long timeBeginningSeekTo = System.currentTimeMillis();
         	byte[] packet = new byte[5];
         	packet[0] = SEEK_TO;
         	byte[] millisecondsArray = new byte[4];
@@ -287,7 +284,6 @@ public class ServerAsyncTask extends Thread implements Runnable {
         		packet[i] = millisecondsArray[i-1];
         	}
         	sendToClients(packet, clientOriginator);
-        	Log.d("total delay log", "broadcasted seek to, delay: "+Long.valueOf(System.currentTimeMillis()-timeBeginningSeekTo).toString());
     }
     
     public void broadcastStopPlayback(int clientOriginator) {
@@ -359,7 +355,6 @@ public class ServerAsyncTask extends Thread implements Runnable {
     }
     
     private void sendToClients(byte[] packet, int clientOriginator) {
-    	long timeBeforeSendToClients = System.currentTimeMillis();
     	OutputStream outputStream;
     	for (int i=0; i<numClients; i++) {
     		if (i == clientOriginator) {
@@ -369,9 +364,6 @@ public class ServerAsyncTask extends Thread implements Runnable {
     			if (dictionary.containsKey(Integer.valueOf(i).toString())) {
     				outputStream = dictionary.get(Integer.valueOf(i).toString()).getOutputStream();
         			outputStream.write(packet);
-        			long timeAfterSendToClients = System.currentTimeMillis();
-        			Log.d("server log", "delay of sendToClients: " + Long.valueOf(timeAfterSendToClients-timeBeforeSendToClients).toString());
-        			
     			}
     		} catch (IOException e) {
     			e.printStackTrace();
