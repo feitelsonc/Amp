@@ -242,7 +242,8 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		            		
             		activity.hideSpinner();
             		            		
-            		musicPlayerService.initializeSongAndPause(uri);
+//            		musicPlayerService.initializeSongAndPause(uri);
+            		musicPlayerService.initializeSong(uri);
             		            		
             		songUri = musicPlayerService.getCurrentTrackUri();
             		
