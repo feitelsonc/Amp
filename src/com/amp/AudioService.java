@@ -26,6 +26,13 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+/*AudioService manages the playback commands on this device, and the broadcasting of these commands from this device to others.
+	-It sends commands to AmpPlayer.
+	-It can request important song information from AmpPlayer such as songLength, currentSongTime, and errors in streaming the music.
+	
+	
+*/
+
 public class AudioService extends Service {
 
 	// private MediaPlayer player = new MediaPlayer();
@@ -188,26 +195,30 @@ public class AudioService extends Service {
     	isPlaying = true;
 	}
 	
-	public void seekTo(int milliseconds, int iteration) {
-		if (iteration >= 5) {
-			return;
-		}
-		
-		if (!playbackStopped) {
-			// long timeBeforeSeekTo = nanoToMilli(System.nanoTime());
-			// player.seekTo(milliseconds);
-			// long timeAfterSeekTo = nanoToMilli(System.nanoTime());
-			// long delay = timeAfterSeekTo-timeBeforeSeekTo;
-			// Log.d("audio log", "SeekToNew delay: " + Long.valueOf(delay).toString());
-			// if (delay > 2) {
-			// 	seekTo(player.getCurrentPosition()+(int)(delay), ++iteration);
-			// }
-			// else {
-			// 	return;
-			// }
-		}
+//	public void seekTo(int milliseconds, int iteration) {
+//		if (iteration >= 5) {
+//			return;
+//		}
+//		
+//		if (!playbackStopped) {
+//			 long timeBeforeSeekTo = nanoToMilli(System.nanoTime());
+//			 player.seekTo(milliseconds);
+//			 long timeAfterSeekTo = nanoToMilli(System.nanoTime());
+//			 long delay = timeAfterSeekTo-timeBeforeSeekTo;
+//			 Log.d("audio log", "SeekToNew delay: " + Long.valueOf(delay).toString());
+//			 if (delay > 2) {
+//			 	seekTo(player.getCurrentPosition()+(int)(delay), ++iteration);
+//			 }
+//			 else {
+//			 	return;
+//			 }
+//		}
+//	}
+	
+	public void seekTo(int milliseconds, int iteration)
+	{
+		ampPlayer.seekTo(milliseconds);
 	}
-
 	public boolean isPlaying() {
 		if (isPlaying) {
 			return true;
@@ -218,18 +229,15 @@ public class AudioService extends Service {
 	}
 
 	public int getPosition() {
-		//return player.getCurrentPosition()/1000;
-		return 0;
+		return ampPlayer.getCurrentPosition()/1000;
 	}
 
 	public int getCurrentPosition() {
-		//return player.getCurrentPosition();
-		return 0;
+		return ampPlayer.getCurrentPosition();
 	}
 
 	public int getDuration() {
-		//return player.getDuration()/1000;
-		return 0;
+		return (int)ampPlayer.songDuration/1000;
 	}
 
 	Uri getCurrentTrackUri() {

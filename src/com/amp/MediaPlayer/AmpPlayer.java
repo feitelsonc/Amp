@@ -9,6 +9,11 @@ import android.content.Context;
 import android.net.Uri;
 import android.util.Log;
 
+//AmpPlayer is the intermediary between audioService and AudioDecoder.
+//	-It is it's own Thread and it runs the audioDecoder.
+//	-It maintains states that signal to audioService and AudioDecoder what to do.
+//	
+
 public class AmpPlayer  extends Thread implements Runnable {
 	
 
@@ -16,6 +21,12 @@ public class AmpPlayer  extends Thread implements Runnable {
 	private boolean playbackEnabled;		//Determines whether playback actions such as play, pause, seekTo should be enabled.	
 	
 	public Uri currentSongUri;
+	public float songDuration;
+	float startMs;
+	float totalMs;
+	boolean seeking;
+	boolean seekBack;
+	boolean seekForward;
 	
 	private AudioDecoder audioDecoder;
 	AudioService audioService;
@@ -40,16 +51,31 @@ public class AmpPlayer  extends Thread implements Runnable {
 		stopPlayback();
 		Log.d("INSURANCE","Ensure that initializeSong called from AudioService is being run.");
 		audioService.stopPlayback();
-		audioDecoder.initializeSong(songUri);
+		songDuration = audioDecoder.initializeSong(songUri);
 		currentSongUri = songUri;
 		audioService.allowPlayback();
 		enablePlayback();				//could cause problems whereby playback was stopped, then song is initialized
 										//and playback is enabled when it shouldnt be.
 		//play();
 	}
+	
+	public int getCurrentPosition()
+	{
+		return (int)audioDecoder.getTime();
+	}
 		
-	public void seekTo(){
-		
+	public void seekTo(int milliseconds){
+		if(milliseconds<totalMs)
+		{
+			seekBack = true;
+			//Should be separate logic to allow backwards seekto. Not sure for now.
+		}
+		else
+		{
+			seekForward = true;
+		}
+		seeking = true;
+		startMs = milliseconds;
 	}
 	 
 	//Play/pause block.
