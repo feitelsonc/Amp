@@ -29,8 +29,6 @@ import android.util.Log;
 /*AudioService manages the playback commands on this device, and the broadcasting of these commands from this device to others.
 	-It sends commands to AmpPlayer.
 	-It can request important song information from AmpPlayer such as songLength, currentSongTime, and errors in streaming the music.
-	
-	
 */
 
 public class AudioService extends Service {
@@ -195,30 +193,30 @@ public class AudioService extends Service {
     	isPlaying = true;
 	}
 	
-//	public void seekTo(int milliseconds, int iteration) {
-//		if (iteration >= 5) {
-//			return;
-//		}
-//		
-//		if (!playbackStopped) {
-//			 long timeBeforeSeekTo = nanoToMilli(System.nanoTime());
-//			 player.seekTo(milliseconds);
-//			 long timeAfterSeekTo = nanoToMilli(System.nanoTime());
-//			 long delay = timeAfterSeekTo-timeBeforeSeekTo;
-//			 Log.d("audio log", "SeekToNew delay: " + Long.valueOf(delay).toString());
-//			 if (delay > 2) {
-//			 	seekTo(player.getCurrentPosition()+(int)(delay), ++iteration);
-//			 }
-//			 else {
-//			 	return;
-//			 }
-//		}
-//	}
-	
-	public void seekTo(int milliseconds, int iteration)
-	{
-		ampPlayer.seekTo(milliseconds);
+	public void seekTo(int milliseconds, int iteration) {
+		if (iteration >= 10) {
+			return;
+		}
+		
+		if (!playbackStopped) {
+			 long timeBeforeSeekTo = nanoToMilli(System.nanoTime());
+			 ampPlayer.seekTo(milliseconds,this);
+			 long timeAfterSeekTo = nanoToMilli(System.nanoTime());
+			 long delay = timeAfterSeekTo-timeBeforeSeekTo;
+			 Log.d("ITERATION OF SEEK TO", "SeekToNew delay: " + Long.valueOf(delay).toString());
+			 if (delay > 10) {
+			 	seekTo(ampPlayer.getCurrentPosition()+(int)(delay), ++iteration);
+			 }
+			 else {
+			 	return;
+			 }
+		}
 	}
+	
+//	public void seekTo(int milliseconds, int iteration)
+//	{
+//		ampPlayer.seekTo(milliseconds,this);
+//	}
 	public boolean isPlaying() {
 		if (isPlaying) {
 			return true;

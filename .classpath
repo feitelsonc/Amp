@@ -6,7 +6,7 @@
 	<classpathentry exported="true" kind="lib" path="C:/Users/Brandon/workspace/jlayer1.0.1/JLayer1.0.1/jl1.0.1.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
-	<classpathentry kind="lib" path="C:/Users/Brandon/Documents/adt-bundle-windows-x86_64-20140702/adt-bundle-windows-x86_64-20140702/sdk/platforms/android-20/android.jar">
+	<classpathentry exported="true" kind="lib" path="C:/Users/Brandon/Documents/adt-bundle-windows-x86_64-20140702/adt-bundle-windows-x86_64-20140702/sdk/platforms/android-20/android.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="http://developer.android.com/reference/"/>
 		</attributes>

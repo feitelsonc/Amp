@@ -28,7 +28,7 @@ public class AudioDecoder {
 	private boolean firstDip;				//need a class-wide variable to make the first dip as accurate as possible.
 	private Uri currentSongUri;
     private AudioTrack currentAudioTrack;
-	
+	private long TESTVARIABLEtime;
 	private Dipper dipper;				
 	private boolean songDone;				//songDone is true after a song has finished playback, or when the song is switching.
 	
@@ -180,7 +180,6 @@ public class AudioDecoder {
 	
 	private float determineSongLength(Uri songUri)
 			throws IOException {
-		float startMs = 0;
 		
 		boolean songSeekDone= false;
 		
@@ -189,7 +188,6 @@ public class AudioDecoder {
 		try {	
 			float totalMs = 0;
 		    Bitstream bitstream = new Bitstream(inputStream);
-		    Decoder decoder = new Decoder();
 
 			Log.d("newDebug","songUri: "+songUri.toString());
 		     
@@ -259,56 +257,70 @@ public class AudioDecoder {
 				    	} else {
 				    		currentHeaderLength = frameHeader.ms_per_frame();
 					        player.totalMs += currentHeaderLength;
-					        Log.d("newDebug","totalMs: "+Float.toString(player.totalMs));
 							
 					        if (player.seeking==true) {
 					        	if(player.seekForward)
 					        	{
 						        	if(player.totalMs>=player.startMs)
 						        	{
+
 						        		firstDip = true;
+						        		player.seekForward = false;
 						        		player.seeking = false;
+						        		TESTVARIABLEtime = System.nanoTime();
 						        	}
 					        	}
 					        	if(player.seekBack)
 					        	{
-					        		if(player.totalMs<=player.startMs)
-					        		{
-					        			firstDip=true;
-					        			player.seeking=false;
-					        			
-					        			//NEW SEEK BACKWARDS SHOULD GO HEREE
-					        			//-Perhaps create new fileinputstream and bitstream?
-					        			//-Perhaps create mark at beginning of bit stream and then reset to that point in the bitstream?
-					        			//	-Maybe not! This will require the system to remember every bit since the beginning of the song, possibly too much.
-					        		}
+					        		TESTVARIABLEtime = System.nanoTime();
+				        			Log.d("Chi Test", "Beginning of seekback if statmeent");
+				        			bitstream.closeFrame();
+				    				inputStream = new BufferedInputStream(new FileInputStream(file));	
+				    				outStream = new ByteArrayOutputStream();
+				    				bitstream = new Bitstream(inputStream);
+				    				decoder = new Decoder();
+				        			player.totalMs = 0;
+				        			player.seekForward = true;
+				        			player.seekBack = false;
+						    		Log.d("Chi Test", "Time of full backward seekTo"+Long.toString((System.nanoTime()-TESTVARIABLEtime)/1000000));
+						    		TESTVARIABLEtime =0 ;
+				        			continue;
 					        	}
 					        }
 				         
 					        if (!player.seeking) {
-					          SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
-					          short[] pcm = output.getBuffer();
-					          for (short s : pcm) {
+					        	SampleBuffer output = (SampleBuffer) decoder.decodeFrame(frameHeader, bitstream);
+					        	short[] pcm = output.getBuffer();
+					        	for (short s : pcm) {
 					        	  outStream.write(s & 0xff);
 					        	  outStream.write((s >> 8 ) & 0xff);
-					          }
+					        	}
 					        }
 					         
 					        if (player.totalMs >= (player.startMs + maxMs)) {
+			        			Log.d("Alpha Test","Beginning of overreach statmeent");
 					        	songDone = true;
 					        	player.pauseTrack();
 					          //If done with track, pause the player.
 					        }
 				    	}
-				      	bitstream.closeFrame();	
-					    byte[] songByteArray = outStream.toByteArray();
+
+			        	byte[] songByteArray = outStream.toByteArray();
 					    currentAudioTrack.write(songByteArray, 0, songByteArray.length);
+					    bitstream.closeFrame();	
+					    outStream = new ByteArrayOutputStream();
+				      	
+					    
 					    if(firstDip)
 					    {
 					    	dipper = new Dipper((long)(player.totalMs-currentHeaderLength),System.nanoTime(),false);
 					    	firstDip=false;
+					    	if(TESTVARIABLEtime!=0)
+					    	{
+					    		Log.d("Delta Test", "Time of full forward seekTo"+Long.toString((dipper.systemTime-TESTVARIABLEtime)/1000000));
+					    		TESTVARIABLEtime = 0;
+					    	}
 					    }
-					    outStream = new ByteArrayOutputStream();
 				    }
 				    outStream.close();
 					return;		    
@@ -371,7 +383,7 @@ public class AudioDecoder {
 	private class Dipper{
 		/*Dipper is supposed to give us a reliable timestamp from which to determine where in the song we are.
 		We should create a new dipper every time playback is changed in any way (new song, stop, pause);
-		Inneresting Use Case:
+		Some Use Cases:
 			-When we pause we should refresh the dipper.
 			-When we start playback again, we should copy the pause dipper EXCEPT-
 				- we need to update the systemTime to be as soon as playback is started.

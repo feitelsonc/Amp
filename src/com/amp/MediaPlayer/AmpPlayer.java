@@ -28,6 +28,8 @@ public class AmpPlayer  extends Thread implements Runnable {
 	boolean seekBack;
 	boolean seekForward;
 	
+	Object caller;
+	
 	private AudioDecoder audioDecoder;
 	AudioService audioService;
 	
@@ -53,6 +55,11 @@ public class AmpPlayer  extends Thread implements Runnable {
 		audioService.stopPlayback();
 		songDuration = audioDecoder.initializeSong(songUri);
 		currentSongUri = songUri;
+		startMs = 0;
+		totalMs = 0;
+		seeking = false;
+		seekBack = false;
+		seekForward = false;
 		audioService.allowPlayback();
 		enablePlayback();				//could cause problems whereby playback was stopped, then song is initialized
 										//and playback is enabled when it shouldnt be.
@@ -63,8 +70,8 @@ public class AmpPlayer  extends Thread implements Runnable {
 	{
 		return (int)audioDecoder.getTime();
 	}
-		
-	public void seekTo(int milliseconds){
+	
+	/*public void seekTo(int milliseconds, Object caller){
 		if(milliseconds<totalMs)
 		{
 			seekBack = true;
@@ -76,8 +83,41 @@ public class AmpPlayer  extends Thread implements Runnable {
 		}
 		seeking = true;
 		startMs = milliseconds;
+	}*/
+		
+	public void seekTo(int milliseconds, Object caller){
+		long first = System.nanoTime();
+		synchronized(caller)
+		{
+			if(milliseconds<totalMs)
+			{
+				seekBack = true;
+				//Should be separate logic to allow backwards seekto. Not sure for now.
+			}
+			else
+			{
+				seekForward = true;
+			}
+			seeking = true;
+			startMs = milliseconds;
+			this.caller = caller;
+			while(seeking)
+			{
+				
+				try {
+					//long second = System.nanoTime();
+					caller.wait(1);
+					//Log.d("Gamma Test", "Time of seekTo method:"+Long.toString((System.nanoTime()-second)/1000000));
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		this.caller = null;
+		Log.d("Beta Test", "Time of seekTo method:"+Long.toString((System.nanoTime()-first)/1000000));
 	}
-	 
+	
 	//Play/pause block.
 	
 	public void playTrack()

@@ -198,6 +198,7 @@ public class ClientAsyncTask extends Thread implements Runnable {
             		activity.showSpinner();
             		
             		byte[] length = new byte[4];
+            		
             		inputstream.readFully(length, 0, 4);
             		int fileLength = byteArrayToInt(length);
             		byte[] fileExtension = new byte[3];

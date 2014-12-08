@@ -447,7 +447,10 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 			// We've bound to LocalService, cast the IBinder and get LocalService instance
 			LocalBinder binder = (LocalBinder) service;
 			musicPlayerService = binder.getService();
-			musicPlayerService.initializeSong(selectedSongUri);
+			if(masterMode)
+			{
+				musicPlayerService.initializeSong(selectedSongUri);
+			}
 			playPause.setBackgroundResource(R.drawable.btn_pause);
 
 			if(musicPlayerService.isPlaying()) {
