@@ -101,18 +101,7 @@ public class AmpPlayer  extends Thread implements Runnable {
 			seeking = true;
 			startMs = milliseconds;
 			this.caller = caller;
-			while(seeking)
-			{
-				
-				try {
-					//long second = System.nanoTime();
-					caller.wait(1);
-					//Log.d("Gamma Test", "Time of seekTo method:"+Long.toString((System.nanoTime()-second)/1000000));
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+			while(seeking)	{	}
 		}
 		this.caller = null;
 		Log.d("Beta Test", "Time of seekTo method:"+Long.toString((System.nanoTime()-first)/1000000));

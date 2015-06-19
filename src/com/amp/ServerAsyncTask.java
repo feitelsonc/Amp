@@ -141,7 +141,7 @@ public class ServerAsyncTask extends Thread implements Runnable {
             		inputstream.readFully(millisecondsArray, 0, 4);
             		milliseconds = byteArrayToInt(millisecondsArray);
             		musicPlayerService.play();
-            		musicPlayerService.seekTo(milliseconds, 1);
+            		musicPlayerService.seekTo(milliseconds,true);
             		rtPropDelay = timeBeforeRequestSeekTo - nanoToMilli(System.nanoTime());
             		if(rtPropDelay>5)
             		{

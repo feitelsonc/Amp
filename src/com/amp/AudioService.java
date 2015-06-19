@@ -193,7 +193,20 @@ public class AudioService extends Service {
     	isPlaying = true;
 	}
 	
-	public void seekTo(int milliseconds, int iteration) {
+	public void seekTo(int milliseconds, boolean networked) {
+		if(networked)
+		{
+			 ampPlayer.seekTo(milliseconds,this);
+			 pause();
+		}
+		else
+		{
+			ampPlayer.seekTo(milliseconds, this);
+		}
+			 
+	}
+	
+	/*public void seekTo(int milliseconds, int iteration) {
 		if (iteration >= 10) {
 			return;
 		}
@@ -211,7 +224,7 @@ public class AudioService extends Service {
 			 	return;
 			 }
 		}
-	}
+	}*/
 	
 //	public void seekTo(int milliseconds, int iteration)
 //	{

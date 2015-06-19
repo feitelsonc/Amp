@@ -70,7 +70,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	private AudioService musicPlayerService = null;
     private Handler handler = new Handler();
     private Ticker ticker = null;
-    private boolean servconnection = false;
     
     // private variables for wifi-direct and tcp connections
     private WifiP2pManager mManager;
@@ -635,8 +634,9 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 	public void onStopTrackingTouch(SeekBar musicProgress) {
 		musicProgress.setProgress(musicProgress.getProgress());
 		if (musicPlayerService != null && musicPlayerService.isPlaying()) {
-
-			musicPlayerService.seekTo(musicProgress.getProgress()*1000, 1);
+			//TODO change networked boolean to reflect actual status of connections.
+			//TODO perhaps that logic should be in audioSErvice itself and we should remove the parameter?
+			musicPlayerService.seekTo(musicProgress.getProgress()*1000, true);
 			if (masterMode) {
 				musicPlayerService.serverBroadcastSeekToNotification();
     		}
@@ -766,7 +766,6 @@ public class MainActivity extends Activity implements OnSeekBarChangeListener, G
 				}
 				else {
 					musicPlayerService.startClient(info.groupOwnerAddress.getHostAddress(), MainActivity.this);
-					servconnection = true;	
 				}
 			}
 		});
