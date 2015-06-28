@@ -194,16 +194,7 @@ public class AudioService extends Service {
 	}
 	
 	public void seekTo(int milliseconds, boolean networked) {
-		if(networked)
-		{
-			 ampPlayer.seekTo(milliseconds,this);
-			 pause();
-		}
-		else
-		{
-			ampPlayer.seekTo(milliseconds, this);
-		}
-			 
+			ampPlayer.seekTo(milliseconds, this);			 
 	}
 	
 	/*public void seekTo(int milliseconds, int iteration) {

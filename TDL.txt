@@ -1,6 +1,3 @@
-Amp
-===
-
 -Look! The zipped Tester file allows us to simulate a connection between two phones.
 
 --SIMULATION TESTING--

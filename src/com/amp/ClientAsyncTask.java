@@ -99,7 +99,6 @@ public class ClientAsyncTask extends Thread implements Runnable {
             Log.d("client log", "sent connect message to server");
             
             while (true) {
-            	
             	if (isTaskCancelled){
             		messageType[0]=DISCONNECT;
             		outputStream.write(messageType);
